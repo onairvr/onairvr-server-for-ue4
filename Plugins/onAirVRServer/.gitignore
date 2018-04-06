@@ -1,0 +1,12 @@
+.DS_Store
+
+Intermediate/
+
+!Binaries/
+Binaries/*
+!Binaries/Win64
+Binaries/Win64/*
+!Binaries/Win64/onAirVRUnrealServerPlugin.dll
+!Binaries/Win64/onAirVRUnrealServerPlugin.lib
+
+

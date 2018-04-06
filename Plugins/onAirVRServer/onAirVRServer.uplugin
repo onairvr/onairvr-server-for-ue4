@@ -1,0 +1,37 @@
+{
+	"FileVersion": 3,
+	"Version": 5,
+	"VersionName": "1.4.1",
+	"FriendlyName": "onAirVR Server for Unreal Engine 4",
+	"Description": "",
+	"Category": "Virtual Reality",
+	"CreatedBy": "onAirVR Team",
+	"CreatedByURL": "https://onairvr.io",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "https://onairvr.io",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"Installed": false,
+    "Modules": [
+		{
+            "Name": "onAirVRServer",
+            "Type": "Runtime",
+            "LoadingPhase": "PreDefault",
+            "WhitelistPlatforms": [ "Win64" ]
+        },
+		{
+            "Name": "onAirVRServerInput",
+            "Type": "Runtime",
+            "LoadingPhase": "PreDefault",
+            "WhitelistPlatforms": [ "Win64" ]
+        },
+		{
+            "Name": "onAirVRServerEditor",
+            "Type": "Editor",
+            "LoadingPhase": "PreDefault",
+            "WhitelistPlatforms": [ "Win64" ]
+        }
+    ]
+}
