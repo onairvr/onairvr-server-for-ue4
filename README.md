@@ -42,4 +42,13 @@ You may clone this whole project. The project contains several sample maps so yo
 
 onAirVR Server for UE4 is [MIT licensed](https://github.com/onairvr/onairvr-server-for-ue4/blob/master/LICENSE).
 
-It also contains our own [license file](https://github.com/onairvr/onairvr-server-for-ue4/blob/master/Plugins/onAirVRServer/Resources/noncommercial.license) for security. This license has the expiration date and we are going to update the file regularly so that the latest one never expires. Note that the current license expires on 2018-07-01.
+It also contains our own [license file](https://github.com/onairvr/onairvr-server-for-ue4/blob/master/Plugins/onAirVRServer/Resources/onairvr.license) for security. This license has the expiration date and we are going to update the file regularly so that the latest one never expires. Note that the current license expires on 2018-07-01.
+
+
+
+## Contact
+
+* Website : [https://onairvr.io](https://onairvr.io)
+* User Forum : [https://www.reddit.com/r/onairvr/](https://www.reddit.com/r/onairvr/)
+* Email : [contact@onairvr.io](mailto:contact@onairvr.io)
+* We are Clicked, Inc. : [http://clicked.co.kr](http://clicked.co.kr)
