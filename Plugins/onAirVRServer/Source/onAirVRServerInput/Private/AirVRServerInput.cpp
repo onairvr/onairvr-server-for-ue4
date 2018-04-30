@@ -13,9 +13,9 @@
 #include "AirVRServerFunctionLibrary.h"
 #include "AirVRCameraRigInput.h"
 #include "IInputDevice.h"
-#include "IMotionController.h"
 #include "internationalization.h"
 #include "IAirVRServerPlugin.h"
+#include "XRMotionControllerBase.h"
 #include "GenericPlatform/IInputInterface.h"
 
 #define LOCTEXT_NAMESPACE "onAirVRServer"
@@ -30,7 +30,7 @@ const FKey FAirVRInputKey::TouchpadLeft("AirVR_Touchpad_Left");
 const FKey FAirVRInputKey::TouchpadRight("AirVR_Touchpad_Right");
 const FKey FAirVRInputKey::TrackedControllerTouchpadTouch("AirVR_Controller_Touch");
 
-class FAirVRServerInput : public IInputDevice, public IMotionController
+class FAirVRServerInput : public IInputDevice, public FXRMotionControllerBase
 {
 public:
     FAirVRServerInput(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler);

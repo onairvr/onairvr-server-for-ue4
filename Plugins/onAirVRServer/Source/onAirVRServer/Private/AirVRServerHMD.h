@@ -22,8 +22,6 @@
 #include "AirVRRenderCameraRigQueue.h"
 #include "AirVRServerFunctionLibrary.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogonAirVRServer, Verbose, All);
-
 class FAirVRServerXRCamera : public FDefaultXRCamera
 {
 public:
@@ -105,7 +103,6 @@ public:
     virtual TSharedPtr<IStereoRendering, ESPMode::ThreadSafe> GetStereoRenderingDevice() override           { return AsShared(); }
 
     virtual FString GetVersionString() const override;
-    virtual void RefreshPoses() override;
     virtual bool OnStartGameFrame(FWorldContext& WorldContext) override;
     virtual bool OnEndGameFrame(FWorldContext& WorldContext) override;
     virtual bool DoesSupportPositionalTracking() const override;
@@ -125,21 +122,20 @@ public:
     virtual void OnBeginPlay(FWorldContext& WorldContext) override;
     virtual void OnEndPlay(FWorldContext& WorldContext) override;
     virtual void RecordAnalytics() override;
+	virtual void OnBeginRendering_GameThread() override;
+	virtual void OnBeginRendering_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& ViewFamily) override;
 
     // implements IHeadMountedDisplay interface
     virtual bool IsHMDConnected() override;
     virtual bool IsHMDEnabled() const override;
     virtual EHMDWornState::Type GetHMDWornState() override;
     virtual void EnableHMD(bool bEnable = true) override;
-    virtual EHMDDeviceType::Type GetHMDDeviceType() const override;
     virtual bool GetHMDMonitorInfo(MonitorInfo& OutMonitorInfo) override;
     virtual void GetFieldOfView(float& InOutHFOVInDegrees, float& InOutVFOVInDegrees) const override;
     virtual void SetInterpupillaryDistance(float NewInterpupillaryDistance) override;
     virtual float GetInterpupillaryDistance() const override;
     virtual bool IsChromaAbCorrectionEnabled() const override;
-    virtual bool GetHMDDistortionEnabled() const override;
-    virtual void BeginRendering_GameThread() override;
-    virtual void BeginRendering_RenderThread(const FTransform& NewRelativeTransform, FRHICommandListImmediate& RHICmdList, FSceneViewFamily& ViewFamily) override;
+    virtual bool GetHMDDistortionEnabled(EShadingPath ShadingPath) const override;
 	virtual void UpdatePostProcessSettings(FPostProcessSettings* Settings) override;
 
     // implements IStereoRendering interface

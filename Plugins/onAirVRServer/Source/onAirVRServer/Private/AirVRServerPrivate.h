@@ -15,3 +15,6 @@
 
 #include "IAirVRServerPlugin.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogonAirVRServer, Verbose, All);
+
+

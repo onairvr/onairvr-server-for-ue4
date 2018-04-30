@@ -484,17 +484,6 @@ FString FAirVRServerHMD::GetVersionString() const
     return FString::Printf(TEXT("onAirVR Server for UE4 2.0.0"));
 }
 
-void FAirVRServerHMD::RefreshPoses()
-{
-    // this is called from FDefaultXRCamera::PreRenderViewFamily_RenderThread() (ISceneViewExtension virtual method)
-    // to get the latest poses just before rendering.
-    // a general HMD implementation also would use this to get poses of devices in OnStartGameFrame.
-
-    // in our case getting poses is done in ONAIRVR_CameraRigManager_Update(), so do nothing here.
-
-    // TODO tear off codes for getting poses from ONAIRVR_CameraRigManager_Update() then place here
-}
-
 bool FAirVRServerHMD::OnStartGameFrame(FWorldContext& WorldContext)
 {
     check(IsInGameThread());
@@ -671,6 +660,42 @@ void FAirVRServerHMD::RecordAnalytics()
     // TODO : provide some config info to FEngineAnlaytics or our own analytics provider.
 }
 
+void FAirVRServerHMD::OnBeginRendering_GameThread()
+{
+	check(IsInGameThread());
+
+	if (IsStereoEnabled() == false) {
+		return;
+	}
+
+	FSceneViewFamily* ViewFamily = XRCamera.Get()->GetCurrentViewFamily();
+	check(ViewFamily->RenderTarget);
+
+	FAirVRRenderCameraRigQueue::Item RenderItem;
+	RenderItem.RenderTarget = ViewFamily->RenderTarget->GetRenderTargetTexture().GetReference();
+
+	TArray<FAirVRPlayerCameraRigMap::Item> MapItems;
+	PlayerCameraRigMap.GetItemsOfBoundPlayers(MapItems);
+	PlayerCameraRigMap.GetItemsOfUnboundPlayers(MapItems);
+	for (auto MapItem : MapItems) {
+		if (MapItem.ShouldRender()) {
+			RenderItem.RenderCameraRigRequests.Add(FAirVRRenderCameraRigQueue::RenderCameraRigRequest(MapItem.CameraRig->GetHeadOrientation(true),
+				MapItem.CameraRig->GetTrackingTimeStamp(),
+				MapItem.bEncode ? MapItem.GetRenderViewport(eSSP_FULL) : FIntRect(),
+				MapItem.GetRenderViewport(eSSP_LEFT_EYE),
+				MapItem.ScreenViewport,
+				MapItem.CameraRig->IsBound() ? MapItem.CameraRig->GetPlayerID() : -1));
+		}
+	}
+
+	RenderCameraRigQueue.Enqueue(RenderItem);
+}
+
+void FAirVRServerHMD::OnBeginRendering_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& ViewFamily)
+{
+	// do nothing
+}
+
 bool FAirVRServerHMD::IsHMDConnected()
 {
     // consider as connected always because connection here means hardware-aspect wire connection.
@@ -693,12 +718,6 @@ void FAirVRServerHMD::EnableHMD(bool bEnable)
 {
     // do nothing. see IsHMDEnabled()
     return;
-}
-
-EHMDDeviceType::Type FAirVRServerHMD::GetHMDDeviceType() const
-{
-    // cannot add custom HMD device type to EHMDDeviceType. select the most appropriate type.
-    return EHMDDeviceType::DT_ES2GenericStereoMesh;
 }
 
 bool FAirVRServerHMD::GetHMDMonitorInfo(MonitorInfo& OutMonitorInfo)
@@ -729,46 +748,9 @@ bool FAirVRServerHMD::IsChromaAbCorrectionEnabled() const
     return false;
 }
 
-bool FAirVRServerHMD::GetHMDDistortionEnabled() const
+bool FAirVRServerHMD::GetHMDDistortionEnabled(EShadingPath /* ShadingPath */) const
 {
-    // TODO return appropriate value for the first player
-    return true;
-}
-
-void FAirVRServerHMD::BeginRendering_GameThread()
-{
-    check(IsInGameThread());
-
-    if (IsStereoEnabled() == false) {
-        return;
-    }
-
-    FSceneViewFamily* ViewFamily = XRCamera.Get()->GetCurrentViewFamily();
-    check(ViewFamily->RenderTarget);
-
-    FAirVRRenderCameraRigQueue::Item RenderItem;
-    RenderItem.RenderTarget = ViewFamily->RenderTarget->GetRenderTargetTexture().GetReference();
-
-    TArray<FAirVRPlayerCameraRigMap::Item> MapItems;
-    PlayerCameraRigMap.GetItemsOfBoundPlayers(MapItems);
-    PlayerCameraRigMap.GetItemsOfUnboundPlayers(MapItems);
-    for (auto MapItem : MapItems) {
-        if (MapItem.ShouldRender()) {
-            RenderItem.RenderCameraRigRequests.Add(FAirVRRenderCameraRigQueue::RenderCameraRigRequest(MapItem.CameraRig->GetHeadOrientation(true),
-																								      MapItem.CameraRig->GetTrackingTimeStamp(),
-                                                                                                      MapItem.bEncode ? MapItem.GetRenderViewport(eSSP_FULL) : FIntRect(),
-                                                                                                      MapItem.GetRenderViewport(eSSP_LEFT_EYE),
-                                                                                                      MapItem.ScreenViewport,
-                                                                                                      MapItem.CameraRig->IsBound() ? MapItem.CameraRig->GetPlayerID() : -1));
-        }
-    }
-
-    RenderCameraRigQueue.Enqueue(RenderItem);
-}
-
-void FAirVRServerHMD::BeginRendering_RenderThread(const FTransform& NewRelativeTransform, FRHICommandListImmediate& RHICmdList, FSceneViewFamily& ViewFamily)
-{
-    // do nothing
+    return false;
 }
 
 void FAirVRServerHMD::UpdatePostProcessSettings(FPostProcessSettings* Settings)
