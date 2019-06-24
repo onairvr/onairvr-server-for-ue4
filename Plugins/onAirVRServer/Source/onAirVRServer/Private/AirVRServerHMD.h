@@ -140,7 +140,6 @@ public:
 
     // implements IStereoRendering interface
     virtual IStereoRenderTargetManager* GetRenderTargetManager() override   { return this; }
-    virtual FRHICustomPresent* GetCustomPresent() override                  { return nullptr; }
     virtual IStereoLayers* GetStereoLayers()                                { return nullptr; }
 
     virtual bool IsStereoEnabled() const override;
