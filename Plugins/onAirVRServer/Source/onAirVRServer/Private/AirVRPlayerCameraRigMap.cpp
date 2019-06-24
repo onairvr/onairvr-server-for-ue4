@@ -195,7 +195,7 @@ bool FAirVRPlayerCameraRigMap::CalculateNextScreenViewport(ESplitScreenType::Typ
         (SplitScreenType == ESplitScreenType::None && InOutPanel != 0) ||
         ((SplitScreenType == ESplitScreenType::TwoPlayer_Horizontal || SplitScreenType == ESplitScreenType::TwoPlayer_Vertical) && InOutPanel >= 2) ||
         ((SplitScreenType == ESplitScreenType::ThreePlayer_FavorTop || SplitScreenType == ESplitScreenType::ThreePlayer_FavorBottom) && InOutPanel >= 3) ||
-        (SplitScreenType == ESplitScreenType::FourPlayer && InOutPanel >= 4)) {
+        ((SplitScreenType == ESplitScreenType::FourPlayer_Grid || SplitScreenType == ESplitScreenType::FourPlayer_Vertical) && InOutPanel >= 4)) {
         return false;
     }
 
@@ -220,7 +220,8 @@ bool FAirVRPlayerCameraRigMap::CalculateNextScreenViewport(ESplitScreenType::Typ
             Result = FIntRect(InOutPanel != 1 ? 0 : ScreenWidth / 2, InOutPanel != 2 ? 0 : ScreenHeight / 2,
                               InOutPanel == 0 ? ScreenWidth / 2 : ScreenWidth, InOutPanel != 2 ? ScreenHeight / 2 : ScreenHeight);
             break;
-        case ESplitScreenType::FourPlayer:
+        case ESplitScreenType::FourPlayer_Grid:
+        case ESplitScreenType::FourPlayer_Vertical:
             Result = FIntRect((InOutPanel % 2) * ScreenWidth / 2, (InOutPanel / 2) * ScreenHeight / 2,
                               (InOutPanel % 2 + 1) * ScreenWidth / 2, (InOutPanel / 2 + 1) * ScreenHeight / 2);
             break;

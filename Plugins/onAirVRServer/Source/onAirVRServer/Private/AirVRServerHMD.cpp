@@ -830,24 +830,6 @@ void FAirVRServerHMD::RenderTexture_RenderThread(class FRHICommandListImmediate&
     }
 }
 
-void FAirVRServerHMD::GetOrthoProjection(int32 RTWidth, int32 RTHeight, float OrthoDistance, FMatrix OrthoProjection[2]) const
-{
-    check(IsInGameThread());
-    // TODO show console in stereoscopic correctly
-
-    // show console only for the first player
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(0, Item)) {
-        for (int eye = 0; eye < 2; eye++) {
-            EStereoscopicPass Pass = eye == 0 ? eSSP_LEFT_EYE : eSSP_RIGHT_EYE;
-            float Width = Item.GetRenderViewport(Pass).Width() / MaxRenderTargetSize.X * (RTWidth / (float)Item.GetRenderViewport(eSSP_LEFT_EYE).Width());
-            float Height = Item.GetRenderViewport(Pass).Height() / MaxRenderTargetSize.Y * (RTHeight / (float)Item.GetRenderViewport(eSSP_LEFT_EYE).Height());
-
-            OrthoProjection[eye] = FScaleMatrix(FVector(Width, Height, 1.0f));
-        }
-    }
-}
-
 void FAirVRServerHMD::GetEyeRenderParams_RenderThread(const struct FRenderingCompositePassContext& Context, FVector2D& EyeToSrcUVScaleValue, FVector2D& EyeToSrcUVOffsetValue) const
 {
     if (Context.View.StereoPass == eSSP_LEFT_EYE) {
