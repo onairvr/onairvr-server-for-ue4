@@ -10,6 +10,7 @@
 #include "AirVRServerScreenRenderer.h"
 #include "AirVRServerPrivate.h"
 
+#include "RendererPrivate.h"
 #include "GlobalShader.h"
 #include "ScreenRendering.h"
 #include "PipelineStateCache.h"
@@ -29,7 +30,8 @@ void FAirVRServerScreenRenderer::DrawPanels(class FRHICommandListImmediate& RHIC
     const uint32 TextureWidth = SrcTexture->GetSizeX();
     const uint32 TextureHeight = SrcTexture->GetSizeY();
 
-    SetRenderTarget(RHICmdList, ScreenTexture, FTextureRHIRef());
+    FRHIRenderPassInfo RPInfo(ScreenTexture, ERenderTargetActions::DontLoad_Store);
+    RHICmdList.BeginRenderPass(RPInfo, TEXT("DrawPanels"));
     RHICmdList.SetViewport(0, 0, 0, ScreenWidth, ScreenHeight, 1.0f);
     DrawQuad(RHICmdList, FLinearColor::Black);
 
@@ -46,7 +48,7 @@ void FAirVRServerScreenRenderer::DrawPanels(class FRHICommandListImmediate& RHIC
     TShaderMapRef<FScreenVS> VertexShader(ShaderMap);
     TShaderMapRef<FScreenPS> PixelShader(ShaderMap);
 
-    GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = RendererModule->GetFilterVertexDeclaration().VertexDeclarationRHI;
+    GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GFilterVertexDeclaration.VertexDeclarationRHI;
     GraphicsPSOInit.BoundShaderState.VertexShaderRHI = GETSAFERHISHADER_VERTEX(*VertexShader);
     GraphicsPSOInit.BoundShaderState.PixelShaderRHI = GETSAFERHISHADER_PIXEL(*PixelShader);
 
@@ -64,6 +66,7 @@ void FAirVRServerScreenRenderer::DrawPanels(class FRHICommandListImmediate& RHIC
                                       FIntPoint(1, 1),
                                       *VertexShader);
     }
+    RHICmdList.EndRenderPass();
 }
 
 FIntRect FAirVRServerScreenRenderer::AdjustScreenViewportToPreserveAspectRatio(const FIntRect& Viewport, float AspectRatio) const

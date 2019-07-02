@@ -154,9 +154,9 @@ private:
 
         virtual void PollInput(FAirVRInputDevice* Device, FAirVRInputStream* InputStream, uint8 Id) override
         {
-            float Val = 0.0f;
-            if (InputStream->GetInput(Device, Id, &Val, 1)) {
-                SetValue(Val);
+            float InputVal = 0.0f;
+            if (InputStream->GetInput(Device, Id, &InputVal, 1)) {
+                SetValue(InputVal);
             }
             else {
                 SetValue(0.0f);

@@ -120,7 +120,8 @@ void FAirVRServerXRCamera::PreRenderViewFamily_RenderThread(FRHICommandListImmed
 }
 
 FAirVRServerHMD::FAirVRServerHMD()
-    : bStereoEnabled(false),
+    : FHeadMountedDisplayBase(nullptr),
+      bStereoEnabled(false),
       bStereoDesired(false),
       GameWorldToMeters(100.0f),
       PlayerCameraRigMap(&EventDispatcher),
@@ -223,12 +224,12 @@ void FAirVRServerHMD::AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbp
 
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) && Item.CameraRig->IsBound()) {
-        ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-            onairvr_AdjustBitRate_RenderThread,
-            int, PlayerID, Item.CameraRig->GetPlayerID(),
-            uint32, Bitrate, (uint32)(BitrateInKbps * 1000),
+        int InPlayerID = Item.CameraRig->GetPlayerID();
+        uint32 InBitrate = (uint32)(BitrateInKbps * 1000);
+        ENQUEUE_RENDER_COMMAND(onairvr_AdjustBitRate_RenderThread)(
+            [InPlayerID, InBitrate](FRHICommandListImmediate& RHICmdList) 
             {
-                onairvr_AdjustBitRate_RenderThread(PlayerID, Bitrate);
+                onairvr_AdjustBitRate_RenderThread(InPlayerID, InBitrate);
             }
         );
     }
@@ -1038,12 +1039,13 @@ void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
                              AudioDevice ? (int)AudioDevice->GetSampleRate() : 48000);
 
         if (ret == ONAIRVR_RESULT_OK) {
-            ENQUEUE_UNIQUE_RENDER_COMMAND(
-                onairvr_StartUp_RenderThread,
+            ENQUEUE_RENDER_COMMAND(onairvr_StartUp_RenderThread)(
+                [](FRHICommandListImmediate& RHICmdList)
                 {
                     onairvr_StartUp_RenderThread(GDynamicRHI->RHIGetNativeDevice());
                 }
             );
+            
             FlushRenderingCommands();
 
             UE_LOG(LogonAirVRServer, Log, TEXT("onAirVR server starts up on port %d"), Settings->PortSTAP);
@@ -1066,12 +1068,13 @@ void FAirVRServerHMD::ShutdownAirVRServer()
 
         PlayerCameraRigMap.Reset();
 
-        ENQUEUE_UNIQUE_RENDER_COMMAND(
-            onairvr_Shutdown_RenderThread,
+        ENQUEUE_RENDER_COMMAND(onairvr_Shutdown_RenderThread)(
+            [](FRHICommandListImmediate& RHICmdList)
             {
                 onairvr_Shutdown_RenderThread();
             }
         );
+        
         FlushRenderingCommands();
 
         onairvr_Shutdown();

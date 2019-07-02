@@ -27,7 +27,7 @@ namespace UnrealBuildTool.Rules
                 "onAirVRServerInput/Private",
                 "Runtime/Windows/D3D11RHI/Public",
                 "Runtime/Windows/D3D11RHI/Private/Windows",
-                "C:/Program Files/Epic Games/UE_4.21/Engine/Source/Runtime/Renderer/Private"
+                "C:/Program Files/Epic Games/UE_4.22/Engine/Source/Runtime/Renderer/Private"
             });
 
 
@@ -38,7 +38,7 @@ namespace UnrealBuildTool.Rules
                 "Projects",
                 "InputCore",
                 "RenderCore",
-                "ShaderCore",
+                //"ShaderCore",
                 "Renderer",
                 "RHI",
                 "D3D11RHI",

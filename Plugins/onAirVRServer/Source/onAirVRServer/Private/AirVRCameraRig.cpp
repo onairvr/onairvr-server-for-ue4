@@ -183,11 +183,12 @@ void FAirVRCameraRig::AirVRTrackingModelContextRecenterCameraRigPose()
 void FAirVRCameraRig::AirVREventMediaStreamInitialized(int InPlayerID)
 {
     if (PlayerID == InPlayerID) {
-        ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-            onairvr_InitStreams_RenderThread,
-            int, PlayerID, PlayerID,
+        int InRenderPlayerID = PlayerID;
+
+        ENQUEUE_RENDER_COMMAND(onairvr_InitStreams_RenderThread)(
+            [InRenderPlayerID](FRHICommandListImmediate& RHICmdList) 
             {
-                onairvr_InitStreams_RenderThread(PlayerID);
+                onairvr_InitStreams_RenderThread(InRenderPlayerID);
             }
         );
 
