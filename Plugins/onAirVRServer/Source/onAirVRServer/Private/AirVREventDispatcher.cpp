@@ -10,10 +10,10 @@
 #include "AirVREventDispatcher.h"
 #include "AirVRServerPrivate.h"
 
-#include "Base64.h"
-#include "AllowWindowsPlatformTypes.h"
+#include "Misc/Base64.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include "onairvr_server.h"
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 
 static const char* KeyType              = "Type";
 static const char* TypeEvent            = "Event";

@@ -10,8 +10,8 @@
 #include "AirVRServerSettings.h"
 #include "AirVRServerPrivate.h"
 
-#include "DefaultValueHelper.h"
-#include "GenericPlatformHttp.h"
+#include "Misc/DefaultValueHelper.h"
+#include "GenericPlatform/GenericPlatformHttp.h"
 
 UAirVRServerSettings::UAirVRServerSettings()
     : LicenseFilePath(TEXT("onairvr.license")),

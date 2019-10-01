@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 #include "IHeadMountedDisplayModule.h"
 
 class IAirVRServerPlugin : public IHeadMountedDisplayModule
