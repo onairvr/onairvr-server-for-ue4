@@ -10,6 +10,7 @@
 #pragma once
 
 #include "AirVRServerFunctionLibrary.h"
+#include "GenericPlatform/GenericApplicationMessageHandler.h"
 
 class FAirVRCameraRigInput
 {

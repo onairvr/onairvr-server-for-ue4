@@ -13,7 +13,7 @@
 #include "PostProcess/PostProcessHMD.h"
 #include "SceneRendering.h"
 #include "dxgiformat.h"
-#include "IPluginManager.h"
+#include "Interfaces/IPluginManager.h"
 #include "onairvr_server.h"
 #include "IAirVRServerPlugin.h"
 #include "AirVRCameraRig.h"
@@ -23,7 +23,7 @@
 #include "AirVRServerSettings.h"
 #include "AirVRClientConfigImpl.h"
 #include "AudioDevice.h"
-#include "DefaultValueHelper.h"
+#include "Misc/DefaultValueHelper.h"
 
 #if WITH_EDITOR
 #include "Editor/UnrealEd/Classes/Editor/EditorEngine.h"
@@ -1028,7 +1028,7 @@ void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 	int ret = onairvr_SetLicenseFile(TCHAR_TO_UTF8((WorldContext.World()->WorldType == EWorldType::Game ? *FPaths::Combine(*FPaths::RootDir(), *Settings->LicenseFilePath) :
 																										 *FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins"), TEXT("onAirVRServer"), TEXT("Resources"), TEXT("onairvr.license")))));
     if (ret == ONAIRVR_RESULT_OK) {
-        onairvr_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, Settings->VideoBitrate, Settings->VideoBitrate, 60);
+        onairvr_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, Settings->VideoBitrate, Settings->VideoBitrate, 72);
 
         FAudioDevice* AudioDevice = GEngine->GetActiveAudioDevice();
         ret = onairvr_StartUp(Settings->MaxClientCount, 
