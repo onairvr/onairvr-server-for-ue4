@@ -13,7 +13,7 @@
 #include "HeadMountedDisplayBase.h"
 #include "XRRenderTargetManager.h"
 #include "DefaultXRCamera.h"
-#include "SceneViewport.h"
+#include "Slate/SceneViewport.h"
 #include "UELocalPlayerRenderContext.h"
 #include "AirVREventDispatcher.h"
 #include "AirVRPlayerCameraRigMap.h"

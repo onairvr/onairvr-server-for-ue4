@@ -14,9 +14,9 @@
 #include "AirVRServerInput.h"
 #include "GenericPlatform/IInputInterface.h"
 
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include "onairvr_input.h"
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 
 void FAirVRCameraRigInput::GetControllerOrientationAndPosition(FRotator& OutOrientation, FVector& OutPosition)
 {
