@@ -13,7 +13,7 @@
 #include "AirVRServerFunctionLibrary.h"
 #include "AirVRCameraRigInput.h"
 #include "IInputDevice.h"
-#include "internationalization.h"
+#include "Internationalization/internationalization.h"
 #include "IAirVRServerPlugin.h"
 #include "XRMotionControllerBase.h"
 #include "GenericPlatform/IInputInterface.h"
@@ -142,7 +142,7 @@ bool FAirVRServerInput::GetControllerOrientationAndPosition(const int32 Controll
 {
     if (PlayerInputMap.Contains(ControllerIndex)) {
         PlayerInputMap[ControllerIndex]->GetControllerOrientationAndPosition(OutOrientation, OutPosition);
-        OutPosition *= WorldToMeterScale;
+        //OutPosition *= WorldToMeterScale;
         return true;
     }
     return false;

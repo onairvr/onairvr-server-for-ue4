@@ -10,15 +10,15 @@
 #include "AirVRServerSettings.h"
 #include "AirVRServerPrivate.h"
 
-#include "DefaultValueHelper.h"
-#include "GenericPlatformHttp.h"
+#include "Misc/DefaultValueHelper.h"
+#include "GenericPlatform/GenericPlatformHttp.h"
 
 UAirVRServerSettings::UAirVRServerSettings()
     : LicenseFilePath(TEXT("onairvr.license")),
       MaxClientCount(1),
       PortSTAP(9090),
       VideoBitrate(24000000),
-      MaxFrameRate(60.0f),
+      MaxFrameRate(72.0f),
       DefaultFrameRate(30.0f),
       BroadcastAudioToAllPlayers(true),
       PortAMP(0),

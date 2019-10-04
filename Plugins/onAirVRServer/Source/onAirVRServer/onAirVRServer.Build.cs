@@ -38,7 +38,6 @@ namespace UnrealBuildTool.Rules
                 "Projects",
                 "InputCore",
                 "RenderCore",
-                //"ShaderCore",
                 "Renderer",
                 "RHI",
                 "D3D11RHI",

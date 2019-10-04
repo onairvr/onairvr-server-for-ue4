@@ -11,10 +11,10 @@
 
 #include "FixedRateTimer.h"
 
-#include "AllowWindowsPlatformTypes.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include "onairvr_input.h"
 #include "onairvr_server.h"
-#include "HideWindowsPlatformTypes.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 
 class FAirVRInputBase
 {

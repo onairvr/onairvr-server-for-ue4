@@ -225,11 +225,10 @@ void FAirVRCameraRig::AirVREventMediaStreamStopped(int InPlayerID)
         assert(TrackingModel);
         TrackingModel->StopTracking();
 
-        ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-            onairvr_ResetStreams_RenderThread,
-            int, PlayerID, PlayerID,
+        ENQUEUE_RENDER_COMMAND(onairvr_ResetStreams_RenderThread)(
+            [InPlayerID](FRHICommandListImmediate& RHICmdList)
             {
-                onairvr_ResetStreams_RenderThread(PlayerID);
+                onairvr_ResetStreams_RenderThread(InPlayerID);
             }
         );
         FlushRenderingCommands();
@@ -243,11 +242,10 @@ void FAirVRCameraRig::AirVREventMediaStreamCleanedUp(int InPlayerID)
     if (PlayerID == InPlayerID) {
         InputStream.Cleanup();
 
-        ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-            onairvr_CleanupStreams_RenderThread,
-            int, PlayerID, PlayerID,
+        ENQUEUE_RENDER_COMMAND(onairvr_CleanupStreams_RenderThread)(
+            [InPlayerID](FRHICommandListImmediate& RHICmdList)
             {
-                onairvr_CleanupStreams_RenderThread(PlayerID);
+                onairvr_CleanupStreams_RenderThread(InPlayerID);
             }
         );
         FlushRenderingCommands();

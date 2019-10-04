@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "InputCoreTypes.h"
+
 struct ONAIRVRSERVERINPUT_API FAirVRInputKey
 {
     static const FKey TouchpadPositionX;

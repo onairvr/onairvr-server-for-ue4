@@ -10,11 +10,12 @@
 #pragma once
 
 #include "AirVRServerFunctionLibrary.h"
+#include "GenericPlatform/GenericApplicationMessageHandler.h"
 
 class FAirVRCameraRigInput
 {
 public:
-    FAirVRCameraRigInput(int32 InControllerID) : ControllerID(InControllerID) {}
+    FAirVRCameraRigInput(int32 InControllerID) : ControllerID(InControllerID), ControllerPosition(FVector::ZeroVector), ControllerOrientation(FQuat::Identity) {}
     ~FAirVRCameraRigInput() {}
 
 public:
@@ -31,4 +32,6 @@ private:
 
 private:
     int32 ControllerID;
+    FVector ControllerPosition;
+    FQuat ControllerOrientation;
 };
