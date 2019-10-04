@@ -754,11 +754,11 @@ bool FAirVRServerHMD::GetHMDDistortionEnabled(EShadingPath /* ShadingPath */) co
     return false;
 }
 
-void FAirVRServerHMD::UpdatePostProcessSettings(FPostProcessSettings* Settings)
-{
-	// not allow to adjust VR scale on server side
-	Settings->ScreenPercentage = 100.0f;
-}
+//void FAirVRServerHMD::UpdatePostProcessSettings(FPostProcessSettings* Settings)
+//{
+//	// not allow to adjust VR scale on server side
+//	Settings->ScreenPercentage = 100.0f;
+//}
 
 bool FAirVRServerHMD::IsStereoEnabled() const
 {

@@ -136,7 +136,7 @@ public:
     virtual float GetInterpupillaryDistance() const override;
     virtual bool IsChromaAbCorrectionEnabled() const override;
     virtual bool GetHMDDistortionEnabled(EShadingPath ShadingPath) const override;
-	virtual void UpdatePostProcessSettings(FPostProcessSettings* Settings) override;
+	//virtual void UpdatePostProcessSettings(FPostProcessSettings* Settings) override;
 
     // implements IStereoRendering interface
     virtual IStereoRenderTargetManager* GetRenderTargetManager() override   { return this; }
