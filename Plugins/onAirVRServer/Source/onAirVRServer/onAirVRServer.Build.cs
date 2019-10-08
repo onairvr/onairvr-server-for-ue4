@@ -27,7 +27,7 @@ namespace UnrealBuildTool.Rules
                 "onAirVRServerInput/Private",
                 "Runtime/Windows/D3D11RHI/Public",
                 "Runtime/Windows/D3D11RHI/Private/Windows",
-                "C:/Program Files/Epic Games/UE_4.19/Engine/Source/Runtime/Renderer/Private"
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Renderer/Private")
             });
 
 

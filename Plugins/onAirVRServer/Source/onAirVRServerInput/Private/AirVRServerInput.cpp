@@ -140,18 +140,33 @@ void FAirVRServerInput::SetChannelValues(int32 ControllerId, const FForceFeedbac
 
 bool FAirVRServerInput::GetControllerOrientationAndPosition(const int32 ControllerIndex, const EControllerHand DeviceHand, FRotator& OutOrientation, FVector& OutPosition, float WorldToMeterScale) const
 {
-    if (PlayerInputMap.Contains(ControllerIndex)) {
-        PlayerInputMap[ControllerIndex]->GetControllerOrientationAndPosition(OutOrientation, OutPosition);
-        //OutPosition *= WorldToMeterScale;
+    if (!IsInGameThread()) {
+        // TODO: benefit tracking status on render thread by making player input map thread-safe
+        // the return value does not have any effect.
+        return false;
+    }
+
+    if (PlayerInputMap.Contains(ControllerIndex) &&
+        PlayerInputMap[ControllerIndex]->IsControllerAvailable(DeviceHand)) {
+        PlayerInputMap[ControllerIndex]->GetControllerOrientationAndPosition(DeviceHand, OutOrientation, OutPosition);
         return true;
     }
     return false;
 }
 
-ETrackingStatus FAirVRServerInput::GetControllerTrackingStatus(const int32 ControllerIndex, const EControllerHand DeviceHand) const
+ETrackingStatus FAirVRServerInput::GetControllerTrackingStatus(const int32 ControllerIndex, const EControllerHand DeviceHand) const 
 {
-    // TODO
-    return ETrackingStatus::Tracked;
+    if (!IsInGameThread()) {
+        // TODO: benefit tracking status on render thread by making player input map thread-safe
+        // the return value does not have any effect.
+        return ETrackingStatus::NotTracked;
+    }
+
+    if (PlayerInputMap.Contains(ControllerIndex) &&
+        PlayerInputMap[ControllerIndex]->IsControllerAvailable(DeviceHand)) {
+        return ETrackingStatus::Tracked;
+    }
+    return ETrackingStatus::NotTracked;
 }
 
 #if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 17)
