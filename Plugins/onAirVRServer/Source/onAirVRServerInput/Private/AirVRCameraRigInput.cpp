@@ -20,10 +20,16 @@
 
 void FAirVRCameraRigInput::GetControllerOrientationAndPosition(FRotator& OutOrientation, FVector& OutPosition)
 {
+    FVector Position;
     FQuat Orientation;
-    UAirVRServerFunctionLibrary::GetInputTransform(ControllerID, FAirVRInputDeviceType::TrackedController, (uint8_t)AirVRTrackedControllerKey::Transform, OutPosition, Orientation);
+    UAirVRServerFunctionLibrary::GetInputTransform(ControllerID, FAirVRInputDeviceType::TrackedController, (uint8_t)AirVRTrackedControllerKey::Transform, Position, Orientation);
 
-    OutOrientation = Orientation.Rotator();
+    // exponential smoothing
+    ControllerPosition = FMath::Lerp(ControllerPosition, Position, 0.85f);
+    ControllerOrientation = FQuat::Slerp(ControllerOrientation, Orientation, 0.85f);
+
+    OutPosition = ControllerPosition;
+    OutOrientation = ControllerOrientation.Rotator();
 }
 
 void FAirVRCameraRigInput::UpdateAndDispatch(FGenericApplicationMessageHandler& MessageHandler)

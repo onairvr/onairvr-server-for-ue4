@@ -18,7 +18,7 @@ UAirVRServerSettings::UAirVRServerSettings()
       MaxClientCount(1),
       PortSTAP(9090),
       VideoBitrate(24000000),
-      MaxFrameRate(60.0f),
+      MaxFrameRate(72.0f),
       DefaultFrameRate(30.0f),
       BroadcastAudioToAllPlayers(true),
       PortAMP(0),

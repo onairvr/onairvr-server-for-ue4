@@ -95,8 +95,12 @@ void FAirVRTrackingModel::StopTracking()
 void FAirVRTrackingModel::UpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config, const ONAIRVR_VECTOR3D& CenterEyePosition, const ONAIRVR_QUATERNION& CenterEyeOrientation)
 {
     IPD = Config.ipd;
-    HMDSpaceCenterEyePosition = FVector(CenterEyePosition.x, CenterEyePosition.y, CenterEyePosition.z);
+
+    // exponential smoothing
+    HMDSpaceCenterEyePosition = FMath::Lerp(HMDSpaceCenterEyePosition, FVector(CenterEyePosition.x, CenterEyePosition.y, CenterEyePosition.z), 0.85f);
     HMDSpaceCenterEyeOrientation = FQuat(CenterEyeOrientation.x, CenterEyeOrientation.y, CenterEyeOrientation.z, CenterEyeOrientation.w);
+
+    //HMDSpaceCenterEyePosition = FVector(CenterEyePosition.x, CenterEyePosition.y, CenterEyePosition.z);
 
     OnUpdateEyePose(Config, HMDSpaceCenterEyePosition, HMDSpaceCenterEyeOrientation, PlayerSpaceCenterEyePosition, PlayerSpaceCenterEyeOrientation);
 
