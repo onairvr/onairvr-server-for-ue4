@@ -18,16 +18,16 @@ namespace UnrealBuildTool.Rules
             PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
             PublicIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Public",
-                "onAirVRServer/Classes",
+                Path.Combine(ModuleDirectory, "Public"),
+                Path.Combine(ModuleDirectory, "Classes")
             });
 
             PrivateIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Private",
-                "onAirVRServerInput/Private",
-                "Runtime/Windows/D3D11RHI/Public",
-                "Runtime/Windows/D3D11RHI/Private/Windows",
-                "C:/Program Files/Epic Games/UE_4.21/Engine/Source/Runtime/Renderer/Private"
+                Path.Combine(ModuleDirectory, "Private"),
+                Path.Combine(ModuleDirectory, "../onAirVRServerInput/Private"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Windows/D3D11RHI/Public"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Windows/D3D11RHI/Private/Windows"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Renderer/Private")
             });
 
 
