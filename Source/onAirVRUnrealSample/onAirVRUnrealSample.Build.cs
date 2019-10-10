@@ -10,7 +10,6 @@
 namespace UnrealBuildTool.Rules {
     public class onAirVRUnrealSample : ModuleRules {
         public onAirVRUnrealSample(ReadOnlyTargetRules Target) : base(Target) {
-            PublicIncludePaths.AddRange(new string[] { "onAirVRServer/Public", "onAirVRServer/Classes", "onAirVRServerInput/Public" });
             PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "onAirVRServerInput" });
 
             PrivateDependencyModuleNames.AddRange(new string[] { });

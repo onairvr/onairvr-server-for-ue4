@@ -1117,6 +1117,10 @@ const char* FAirVRServerHMD::ParseInputDeviceName(FAirVRInputDeviceType Device) 
             return ONAIRVR_INPUT_DEVICE_GAMEPAD;
         case FAirVRInputDeviceType::TrackedController:
             return ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER;
+        case FAirVRInputDeviceType::LeftController:
+            return ONAIRVR_INPUT_DEVICE_LEFT_CONTROLLER;
+        case FAirVRInputDeviceType::RightController:
+            return ONAIRVR_INPUT_DEVICE_RIGHT_CONTROLLER;
         default:
             break;
     }
