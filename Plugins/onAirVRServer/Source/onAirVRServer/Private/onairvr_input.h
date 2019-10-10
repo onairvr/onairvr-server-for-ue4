@@ -13,6 +13,8 @@
 #define ONAIRVR_INPUT_DEVICE_TOUCHPAD               "Touchpad"
 #define ONAIRVR_INPUT_DEVICE_GAMEPAD                "Gamepad"
 #define ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER     "TrackedController"
+#define ONAIRVR_INPUT_DEVICE_LEFT_CONTROLLER        "LeftController"
+#define ONAIRVR_INPUT_DEVICE_RIGHT_CONTROLLER       "RightController"
 
 enum class AirVRHeadTrackerKey
 {
@@ -98,6 +100,30 @@ enum class AirVRTrackedControllerKey
 
     ExtAxis2DTouchPosition,
     ExtButtonTouch,
+
+    Max
+};
+
+enum class AirVRControllerKey {
+    Transform = 0,
+    RaycastHitResult,
+
+    Axis2DThumbstick,
+    Axis1DIndexTrigger,
+    Axis1DHandTrigger,
+    ButtonThumbstick,
+    ButtonOne,
+    ButtonTwo,
+    ButtonSystem,
+
+    // ADD ADDITIONAL KEYS HERE
+
+    ButtonIndexTrigger,
+    ButtonHandTrigger,
+    ButtonThumbstickUp,
+    ButtonThumbstickDown,
+    ButtonThumbstickLeft,
+    ButtonThumbstickRight,
 
     Max
 };

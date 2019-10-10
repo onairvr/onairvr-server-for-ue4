@@ -7,6 +7,8 @@
 
  ***********************************************************/
 
+using System.IO;
+
 namespace UnrealBuildTool.Rules 
 {
     public class onAirVRServerInput : ModuleRules 
@@ -16,12 +18,12 @@ namespace UnrealBuildTool.Rules
             PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
             PublicIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Public",
-                "onAirVRServer/Classes"
+                Path.Combine(ModuleDirectory, "../onAirVRServer/Public"),
+                Path.Combine(ModuleDirectory, "../onAirVRServer/Classes")
             });
 
             PrivateIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Private",
+                Path.Combine(ModuleDirectory, "../onAirVRServer/Private")
             });
 
             PrivateDependencyModuleNames.AddRange(new string[] {
