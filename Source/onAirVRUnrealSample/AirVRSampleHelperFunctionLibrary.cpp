@@ -36,9 +36,8 @@ void UAirVRSampleHelperFunctionLibrary::GetPlayerMoveInputDirection(APlayerContr
         OutResult += TranslateTouchPositionToMoveDirection(FVector2D(PlayerController->GetInputAnalogKeyState(FAirVRInputKey::TouchpadPositionX) * 5.0f,
                                                                      PlayerController->GetInputAnalogKeyState(FAirVRInputKey::TouchpadPositionY) * 5.0f));
     }
-    if (PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Left_Thumbstick) > 0.0f) {
-        OutResult += TranslateTouchPositionToMoveDirection(FVector2D(PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Left_Thumbstick_X),
-                                                                     PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Left_Thumbstick_Y)));
-    }
+    
+    OutResult += TranslateTouchPositionToMoveDirection(FVector2D(PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Right_Thumbstick_X),
+                                                                    PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Right_Thumbstick_Y)));
     OutResult += FVector2D(PlayerController->GetInputAnalogKeyState(EKeys::Gamepad_LeftX), PlayerController->GetInputAnalogKeyState(EKeys::Gamepad_LeftY));
 }

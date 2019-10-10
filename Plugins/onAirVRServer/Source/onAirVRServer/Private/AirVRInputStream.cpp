@@ -15,6 +15,8 @@
 #include "AirVRTouchpadInputDevice.h"
 #include "AirVRGamepadInputDevice.h"
 #include "AirVRTrackedControllerInputDevice.h"
+#include "AirVRLeftControllerInputDevice.h"
+#include "AirVRRightControllerInputDevice.h"
 #include "AirVRDeviceFeedback.h"
 
 FAirVRInputStream::FAirVRInputStream(FAirVRCameraRig* InOwner)
@@ -24,6 +26,8 @@ FAirVRInputStream::FAirVRInputStream(FAirVRCameraRig* InOwner)
     AddInputDevice(new FAirVRTouchpadInputDevice());
     AddInputDevice(new FAirVRGamepadInputDevice());
     AddInputDevice(new FAirVRTrackedControllerInputDevice());
+    AddInputDevice(new FAirVRLeftControllerInputDevice());
+    AddInputDevice(new FAirVRRightControllerInputDevice());
 }
 
 FAirVRInputStream::~FAirVRInputStream()
