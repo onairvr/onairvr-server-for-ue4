@@ -19,7 +19,7 @@ class ONAIRVRSERVERINPUT_API UAirVRTrackedControllerPointer : public UAirVRPoint
 
 protected:
     // implements UAirVRPointerWidgetInteractionComponent virtual methods
-    virtual FAirVRInputDeviceType InputDevice() const override   { return FAirVRInputDeviceType::TrackedController; }
+    virtual FAirVRInputDeviceType InputDevice() const override   { return FAirVRInputDeviceType::RightHandTracker; }
 
     virtual float GetPrimaryButtonAnalogState(APlayerController* PlayerController) const override;
 };

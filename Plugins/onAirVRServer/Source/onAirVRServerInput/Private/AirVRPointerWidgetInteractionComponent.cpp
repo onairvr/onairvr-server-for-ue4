@@ -34,8 +34,8 @@ void UAirVRPointerWidgetInteractionComponent::TickComponent(float DeltaTime, ELe
     if (InputDevice() == FAirVRInputDeviceType::HeadTracker) {
         UAirVRServerFunctionLibrary::GetOrientationAndPosition(PlayerControllerID, Rotation, Position);
     }
-    else if (InputDevice() == FAirVRInputDeviceType::TrackedController) {
-        UAirVRServerFunctionLibrary::GetTrackedDeviceOrientationAndPosition(PlayerControllerID, FAirVRInputDeviceType::TrackedController, Rotation, Position);
+    else if (InputDevice() == FAirVRInputDeviceType::RightHandTracker) {
+        UAirVRServerFunctionLibrary::GetTrackedDeviceOrientationAndPosition(PlayerControllerID, FAirVRInputDeviceType::RightHandTracker, Rotation, Position);
     }
     else {
         check(false);
