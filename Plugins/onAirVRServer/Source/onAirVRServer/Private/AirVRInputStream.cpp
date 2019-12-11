@@ -12,22 +12,18 @@
 
 #include "AirVRCameraRig.h"
 #include "AirVRHeadTrackerInputDevice.h"
-#include "AirVRTouchpadInputDevice.h"
-#include "AirVRGamepadInputDevice.h"
-#include "AirVRTrackedControllerInputDevice.h"
-#include "AirVRLeftControllerInputDevice.h"
-#include "AirVRRightControllerInputDevice.h"
+#include "AirVRLeftHandTrackerInputDevice.h"
+#include "AirVRRightHandTrackerInputDevice.h"
+#include "AirVRControllerInputDevice.h"
 #include "AirVRDeviceFeedback.h"
 
 FAirVRInputStream::FAirVRInputStream(FAirVRCameraRig* InOwner)
     : Owner(InOwner)
 {
     AddInputDevice(new FAirVRHeadTrackerInputDevice());
-    AddInputDevice(new FAirVRTouchpadInputDevice());
-    AddInputDevice(new FAirVRGamepadInputDevice());
-    AddInputDevice(new FAirVRTrackedControllerInputDevice());
-    AddInputDevice(new FAirVRLeftControllerInputDevice());
-    AddInputDevice(new FAirVRRightControllerInputDevice());
+    AddInputDevice(new FAirVRLeftHandTrackerInputDevice());
+    AddInputDevice(new FAirVRRightHandTrackerInputDevice());
+    AddInputDevice(new FAirVRControllerInputDevice());
 }
 
 FAirVRInputStream::~FAirVRInputStream()
@@ -94,12 +90,15 @@ void FAirVRInputStream::Update()
 
     InputSendTimer.UpdatePerFrame();
     if (InputSendTimer.Expired()) {
+        int64_t timestamp = 0;
+        onairvr_BeginPendInput(Owner->GetPlayerID(), timestamp);
+
         for (auto& Feedback : DeviceFeedbacks) {
             if (Feedback.Value->IsRegistered()) {
                 Feedback.Value->PendInputsPerFrame(this);
             }
         }
-        onairvr_SendPendingInputs(Owner->GetPlayerID());
+        onairvr_SendPendingInputs(Owner->GetPlayerID(), timestamp);
     }
 }
 
@@ -284,7 +283,7 @@ FAirVRTrackedDeviceFeedback* FAirVRInputStream::CreateTrackedDeviceFeedback(cons
     if (DeviceName.Equals(ONAIRVR_INPUT_DEVICE_HEADTRACKER)) {
         return new FAirVRHeadTrackerDeviceFeedback(CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
     }
-    else if (DeviceName.Equals(ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER)) {
+    else if (DeviceName.Equals(ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER)) {
         return new FAirVRTrackedControllerDeviceFeedback(CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
     }
     return nullptr;

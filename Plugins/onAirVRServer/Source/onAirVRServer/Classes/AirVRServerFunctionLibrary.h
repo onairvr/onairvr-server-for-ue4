@@ -16,11 +16,9 @@ UENUM(BlueprintType)
 enum class FAirVRInputDeviceType : uint8 
 {
     HeadTracker,
-    Touchpad,
-    Gamepad,
-    TrackedController,
-    LeftController,
-    RightController
+    LeftHandTracker,
+    RightHandTracker,
+    Controller
 };
 
 UENUM(BlueprintType)

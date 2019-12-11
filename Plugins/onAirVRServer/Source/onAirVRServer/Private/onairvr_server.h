@@ -133,6 +133,7 @@ extern "C"
     void ONAIRVR_API onairvr_StartUp_RenderThread(void* gfxDevice);
     void ONAIRVR_API onairvr_Shutdown();
     void ONAIRVR_API onairvr_Shutdown_RenderThread();
+    void ONAIRVR_API onairvr_EnableProfilers(int profilers);
 
     bool ONAIRVR_API onairvr_GetConfig(int playerID, ONAIRVR_CLIENT_CONFIG* result);
     void ONAIRVR_API onairvr_SetConfig(int playerID, const ONAIRVR_CLIENT_CONFIG& config);
@@ -157,9 +158,10 @@ extern "C"
 
     uint8_t ONAIRVR_API onairvr_RegisterInputSender(int playerID, const char* name, const ONAIRVR_INPUT_SENDER_ARGS* args = nullptr);
     void ONAIRVR_API onairvr_UnregisterInputSender(int playerID, uint8_t deviceID);
+    void ONAIRVR_API onairvr_BeginPendInput(int playerID, int64_t& timestamp);
     void ONAIRVR_API onairvr_PendInput(int playerID, uint8_t deviceID, uint8_t controlID, const float* values, int length, ONAIRVR_INPUT_SENDING_POLICY policy);
     bool ONAIRVR_API onairvr_GetInput(int playerID, uint8_t deviceID, uint8_t controlID, float* values, int length, double* timeStamp = nullptr);
-    void ONAIRVR_API onairvr_SendPendingInputs(int playerID);
+    void ONAIRVR_API onairvr_SendPendingInputs(int playerID, int64_t timestamp);
     void ONAIRVR_API onairvr_ResetInput(int playerID);
 
 #ifdef __cplusplus
