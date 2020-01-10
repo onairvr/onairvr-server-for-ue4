@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -34,8 +34,8 @@ void UAirVRPointerWidgetInteractionComponent::TickComponent(float DeltaTime, ELe
     if (InputDevice() == FAirVRInputDeviceType::HeadTracker) {
         UAirVRServerFunctionLibrary::GetOrientationAndPosition(PlayerControllerID, Rotation, Position);
     }
-    else if (InputDevice() == FAirVRInputDeviceType::TrackedController) {
-        UAirVRServerFunctionLibrary::GetTrackedDeviceOrientationAndPosition(PlayerControllerID, FAirVRInputDeviceType::TrackedController, Rotation, Position);
+    else if (InputDevice() == FAirVRInputDeviceType::RightHandTracker) {
+        UAirVRServerFunctionLibrary::GetTrackedDeviceOrientationAndPosition(PlayerControllerID, FAirVRInputDeviceType::RightHandTracker, Rotation, Position);
     }
     else {
         check(false);
