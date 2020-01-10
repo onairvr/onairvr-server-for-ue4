@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -274,10 +274,20 @@ void FAirVRServerHMD::GetTrackedDeviceRotationAndPosition(int32 PlayerController
             Rotation = Item.CameraRig->GetHeadOrientation(false).Rotator();
             return;
         }
-        case FAirVRInputDeviceType::TrackedController: {
+        case FAirVRInputDeviceType::LeftHandTracker: {
             ONAIRVR_VECTOR3D Pos;
             ONAIRVR_QUATERNION Rot;
-            Item.CameraRig->GetInputStream()->GetTransform(ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER, (uint8)AirVRTrackedControllerKey::Transform, &Pos, &Rot);
+            Item.CameraRig->GetInputStream()->GetTransform(ONAIRVR_INPUT_DEVICE_LEFT_HAND_TRACKER, (uint8)AirVRLeftHandTrackerKey::Transform, &Pos, &Rot);
+
+            Position = Item.CameraRig->GetHMDToPlayerSpaceMatrix().TransformPosition(FVector(Pos.x, Pos.y, Pos.z)) * GetWorldToMetersScale();
+            Rotation = Item.CameraRig->GetHMDToPlayerSpaceMatrix().Rotator() + FQuat(Rot.x, Rot.y, Rot.z, Rot.w).Rotator();
+            return;
+        }
+        case FAirVRInputDeviceType::RightHandTracker:
+        {
+            ONAIRVR_VECTOR3D Pos;
+            ONAIRVR_QUATERNION Rot;
+            Item.CameraRig->GetInputStream()->GetTransform(ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER, (uint8)AirVRRightHandTrackerKey::Transform, &Pos, &Rot);
 
             Position = Item.CameraRig->GetHMDToPlayerSpaceMatrix().TransformPosition(FVector(Pos.x, Pos.y, Pos.z)) * GetWorldToMetersScale();
             Rotation = Item.CameraRig->GetHMDToPlayerSpaceMatrix().Rotator() + FQuat(Rot.x, Rot.y, Rot.z, Rot.w).Rotator();
@@ -1022,6 +1032,8 @@ void FAirVRServerHMD::HandleStereoEnabled(FWorldContext& WorldContext, bool bEna
 
 void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 {
+    const int MaxVideoBitrate = 160000000;
+
     const UAirVRServerSettings* Settings = GetDefault<UAirVRServerSettings>();
     check(Settings);
     const_cast<UAirVRServerSettings*>(Settings)->ParseCommandLineArgs();
@@ -1029,7 +1041,7 @@ void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 	int ret = onairvr_SetLicenseFile(TCHAR_TO_UTF8((WorldContext.World()->WorldType == EWorldType::Game ? *FPaths::Combine(*FPaths::RootDir(), *Settings->LicenseFilePath) :
 																										 *FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins"), TEXT("onAirVRServer"), TEXT("Resources"), TEXT("onairvr.license")))));
     if (ret == ONAIRVR_RESULT_OK) {
-        onairvr_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, Settings->VideoBitrate, Settings->VideoBitrate, 72);
+        onairvr_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, MaxVideoBitrate, Settings->VideoBitrate, 72);
 
         FAudioDevice* AudioDevice = GEngine->GetActiveAudioDevice();
         ret = onairvr_StartUp(Settings->MaxClientCount, 
@@ -1103,7 +1115,7 @@ void FAirVRServerHMD::AddAudioSendToMasterSubmix(FWorldContext& WorldContext)
 
 bool FAirVRServerHMD::IsTrackedDevice(FAirVRInputDeviceType Device) const
 {
-    return Device == FAirVRInputDeviceType::HeadTracker || Device == FAirVRInputDeviceType::TrackedController;
+    return Device == FAirVRInputDeviceType::HeadTracker || Device == FAirVRInputDeviceType::RightHandTracker;
 }
 
 const char* FAirVRServerHMD::ParseInputDeviceName(FAirVRInputDeviceType Device) const
@@ -1111,16 +1123,12 @@ const char* FAirVRServerHMD::ParseInputDeviceName(FAirVRInputDeviceType Device) 
     switch (Device) {
         case FAirVRInputDeviceType::HeadTracker:
             return ONAIRVR_INPUT_DEVICE_HEADTRACKER;
-        case FAirVRInputDeviceType::Touchpad:
-            return ONAIRVR_INPUT_DEVICE_TOUCHPAD;
-        case FAirVRInputDeviceType::Gamepad:
-            return ONAIRVR_INPUT_DEVICE_GAMEPAD;
-        case FAirVRInputDeviceType::TrackedController:
-            return ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER;
-        case FAirVRInputDeviceType::LeftController:
-            return ONAIRVR_INPUT_DEVICE_LEFT_CONTROLLER;
-        case FAirVRInputDeviceType::RightController:
-            return ONAIRVR_INPUT_DEVICE_RIGHT_CONTROLLER;
+        case FAirVRInputDeviceType::LeftHandTracker:
+            return ONAIRVR_INPUT_DEVICE_LEFT_HAND_TRACKER;
+        case FAirVRInputDeviceType::RightHandTracker:
+            return ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER;
+        case FAirVRInputDeviceType::Controller:
+            return ONAIRVR_INPUT_DEVICE_CONTROLLER;
         default:
             break;
     }
@@ -1133,8 +1141,8 @@ uint8 FAirVRServerHMD::ParseRaycastResultFeedbackControlID(FAirVRInputDeviceType
     switch (Device) {
         case FAirVRInputDeviceType::HeadTracker:
             return (uint8)AirVRHeadTrackerKey::RaycastHitResult;
-        case FAirVRInputDeviceType::TrackedController:
-            return (uint8)AirVRTrackedControllerKey::RaycastHitResult;
+        case FAirVRInputDeviceType::RightHandTracker:
+            return (uint8)AirVRRightHandTrackerKey::RaycastHitResult;
         default:
             break;
     }
