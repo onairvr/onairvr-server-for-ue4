@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -61,8 +61,8 @@ public:
 
 protected:
     // implements FAirVRPointerInputDeviceFeedback
-    virtual uint8 RaycastHitResultControlID() const override { return (uint8)AirVRTrackedControllerKey::RaycastHitResult; }
+    virtual uint8 RaycastHitResultControlID() const override { return (uint8)AirVRRightHandTrackerKey::RaycastHitResult; }
 
 public:
-    virtual FString Name() const override { return ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER; }
+    virtual FString Name() const override { return ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER; }
 };

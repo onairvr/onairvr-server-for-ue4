@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -19,7 +19,7 @@ UAirVRAutoSelectPointer::UAirVRAutoSelectPointer()
 
 void UAirVRAutoSelectPointer::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-    FAirVRInputDeviceType Device = UAirVRServerFunctionLibrary::IsInputDeviceAvailable(PlayerControllerID, FAirVRInputDeviceType::TrackedController) ? FAirVRInputDeviceType::TrackedController : FAirVRInputDeviceType::HeadTracker;
+    FAirVRInputDeviceType Device = UAirVRServerFunctionLibrary::IsInputDeviceAvailable(PlayerControllerID, FAirVRInputDeviceType::RightHandTracker) ? FAirVRInputDeviceType::RightHandTracker : FAirVRInputDeviceType::HeadTracker;
     if (Device != CurrentDevice) {
         if (UAirVRServerFunctionLibrary::IsDeviceFeedbackEnabled(PlayerControllerID, CurrentDevice)) {
             UAirVRServerFunctionLibrary::DisableDeviceFeedback(PlayerControllerID, CurrentDevice);
@@ -35,7 +35,7 @@ float UAirVRAutoSelectPointer::GetPrimaryButtonAnalogState(APlayerController* Pl
     if (CurrentDevice == FAirVRInputDeviceType::HeadTracker) {
         return PlayerController->GetInputAnalogKeyState(FAirVRInputKey::TouchpadTouch) + PlayerController->GetInputAnalogKeyState(EKeys::Gamepad_FaceButton_Bottom);
     }
-    else if (CurrentDevice == FAirVRInputDeviceType::TrackedController) {
+    else if (CurrentDevice == FAirVRInputDeviceType::RightHandTracker) {
         return PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Left_Thumbstick) + PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Left_Trigger);
     }
     return 0.0f;
