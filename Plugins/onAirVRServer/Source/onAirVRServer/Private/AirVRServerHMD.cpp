@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -1049,6 +1049,8 @@ void FAirVRServerHMD::HandleStereoEnabled(FWorldContext& WorldContext, bool bEna
 
 void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 {
+    const int MaxVideoBitrate = 160000000;
+
     const UAirVRServerSettings* Settings = GetDefault<UAirVRServerSettings>();
     check(Settings);
     const_cast<UAirVRServerSettings*>(Settings)->ParseCommandLineArgs();
@@ -1056,7 +1058,7 @@ void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 	int ret = onairvr_SetLicenseFile(TCHAR_TO_UTF8((WorldContext.World()->WorldType == EWorldType::Game ? *FPaths::Combine(*FPaths::RootDir(), *Settings->LicenseFilePath) :
 																										 *FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins"), TEXT("onAirVRServer"), TEXT("Resources"), TEXT("onairvr.license")))));
     if (ret == ONAIRVR_RESULT_OK) {
-        onairvr_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, Settings->VideoBitrate, Settings->VideoBitrate, 72);
+        onairvr_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, MaxVideoBitrate, Settings->VideoBitrate, 72);
 
         FAudioDevice* AudioDevice = GEngine->GetActiveAudioDevice();
         ret = onairvr_StartUp(Settings->MaxClientCount, 
