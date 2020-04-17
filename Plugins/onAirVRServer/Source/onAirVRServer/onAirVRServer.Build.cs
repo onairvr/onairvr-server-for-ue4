@@ -41,7 +41,6 @@ namespace UnrealBuildTool.Rules
                 "Renderer",
                 "RHI",
                 "D3D11RHI",
-                "UtilityShaders",
                 "HeadMountedDisplay",
                 "AudioMixer",
                 "Json",
