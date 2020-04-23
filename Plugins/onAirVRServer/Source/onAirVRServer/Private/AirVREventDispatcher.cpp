@@ -12,7 +12,7 @@
 
 #include "Misc/Base64.h"
 #include "Windows/AllowWindowsPlatformTypes.h"
-#include "onairvr_server.h"
+#include "ocs_server.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 
 static const char* KeyType              = "Type";
@@ -59,7 +59,7 @@ void FAirVREventDispatcher::DispatchMessages()
 {
     int SrcPlayerID = -1;
     const char* Message = nullptr;
-    while (onairvr_CheckMessageQueue(SrcPlayerID, &Message)) {
+    while (ocs_CheckMessageQueue(SrcPlayerID, &Message)) {
         TSharedPtr<FJsonObject> Parsed;
         TSharedRef<TJsonReader<TCHAR>> Reader = TJsonReaderFactory<TCHAR>::Create(Message);
         if (FJsonSerializer::Deserialize<TCHAR>(Reader, Parsed) && Parsed.IsValid()) {
@@ -83,7 +83,7 @@ void FAirVREventDispatcher::DispatchMessages()
                 }
             }
         }
-        onairvr_RemoveFirstMessage();
+        ocs_RemoveFirstMessage();
     }
 }
 

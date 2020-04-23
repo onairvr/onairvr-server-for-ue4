@@ -80,123 +80,150 @@ void FAirVRCameraRigInput::GetControllerOrientationAndPosition(const EController
 
 void FAirVRCameraRigInput::UpdateAndDispatch(FGenericApplicationMessageHandler& MessageHandler)
 {
-    // Touchpad
-    DispatchControlAxis2D(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::Axis2DTouchpad, FAirVRInputKey::TouchpadPositionX.GetFName(), FAirVRInputKey::TouchpadPositionY.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::TouchTouchpad, FAirVRInputKey::TouchpadTouch.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonBack, FAirVRInputKey::TouchpadBackButton.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonUp, FAirVRInputKey::TouchpadUp.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonDown, FAirVRInputKey::TouchpadDown.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLeft, FAirVRInputKey::TouchpadLeft.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRight, FAirVRInputKey::TouchpadRight.GetFName());
-
-    // Gamepad
-    DispatchControlAxis2D(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::Axis2DLThumbstick, EKeys::Gamepad_LeftX.GetFName(), EKeys::Gamepad_LeftY.GetFName());
-    DispatchControlAxis2D(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::Axis2DRThumbstick, EKeys::Gamepad_RightX.GetFName(), EKeys::Gamepad_RightY.GetFName());
-    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisLIndexTrigger, EKeys::Gamepad_LeftTriggerAxis.GetFName());
-    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisRIndexTrigger, EKeys::Gamepad_RightTriggerAxis.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonA, EKeys::Gamepad_FaceButton_Bottom.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonB, EKeys::Gamepad_FaceButton_Right.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonX, EKeys::Gamepad_FaceButton_Left.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonY, EKeys::Gamepad_FaceButton_Top.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonStart, EKeys::Gamepad_Special_Right.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonBack, EKeys::Gamepad_Special_Left.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLShoulder, EKeys::Gamepad_LeftShoulder.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRShoulder, EKeys::Gamepad_RightShoulder.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstick, EKeys::Gamepad_LeftThumbstick.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstick, EKeys::Gamepad_RightThumbstick.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonUp, EKeys::Gamepad_DPad_Up.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonDown, EKeys::Gamepad_DPad_Down.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLeft, EKeys::Gamepad_DPad_Left.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRight, EKeys::Gamepad_DPad_Right.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLIndexTrigger, EKeys::Gamepad_LeftTrigger.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRIndexTrigger, EKeys::Gamepad_RightTrigger.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickUp, EKeys::Gamepad_LeftStick_Up.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickDown, EKeys::Gamepad_LeftStick_Down.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickLeft, EKeys::Gamepad_LeftStick_Left.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickRight, EKeys::Gamepad_LeftStick_Right.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickUp, EKeys::Gamepad_RightStick_Up.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickDown, EKeys::Gamepad_RightStick_Down.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickLeft, EKeys::Gamepad_RightStick_Left.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickRight, EKeys::Gamepad_RightStick_Right.GetFName());
-
-    // Controllers
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonX, 
+                          FKeyNames(FAirVRInputKey::LButtonX.GetFName(), EKeys::MotionController_Left_FaceButton1.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonY,
+                          FKeyNames(FAirVRInputKey::LButtonY.GetFName(), EKeys::MotionController_Left_FaceButton2.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonStart, 
+                          FKeyNames(FAirVRInputKey::LButtonMenu.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLIndexTrigger,
+                          FKeyNames(FAirVRInputKey::LTrigger.GetFName(), EKeys::MotionController_Left_Trigger.GetFName()));
+    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisLIndexTrigger,
+                        FKeyNames(FAirVRInputKey::LTriggerAxis.GetFName(), EKeys::MotionController_Left_TriggerAxis.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLHandTrigger,
+                          FKeyNames(FAirVRInputKey::LGrip.GetFName(), EKeys::MotionController_Left_Grip1.GetFName()));
+    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisLHandTrigger,
+                        FKeyNames(FAirVRInputKey::LGripAxis.GetFName(), EKeys::MotionController_Left_Grip1Axis.GetFName()));
     DispatchControlAxis2D(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::Axis2DLThumbstick,
-                          EKeys::MotionController_Left_Thumbstick_X.GetFName(), EKeys::MotionController_Left_Thumbstick_Y.GetFName());
-    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisLIndexTrigger, EKeys::MotionController_Left_TriggerAxis.GetFName());
-    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisLHandTrigger, EKeys::MotionController_Left_Grip1Axis.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstick, EKeys::MotionController_Left_Thumbstick.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLIndexTrigger, EKeys::MotionController_Left_Trigger.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLHandTrigger, EKeys::MotionController_Left_Grip1.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonX, EKeys::MotionController_Left_FaceButton1.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonY, EKeys::MotionController_Left_FaceButton2.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickUp, EKeys::MotionController_Left_Thumbstick_Up.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickDown, EKeys::MotionController_Left_Thumbstick_Down.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickLeft, EKeys::MotionController_Left_Thumbstick_Left.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickRight, EKeys::MotionController_Left_Thumbstick_Right.GetFName());
-
+                          FKeyNames(FAirVRInputKey::LThumbstickX.GetFName(), EKeys::MotionController_Left_Thumbstick_X.GetFName()),
+                          FKeyNames(FAirVRInputKey::LThumbstickY.GetFName(), EKeys::MotionController_Left_Thumbstick_Y.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstick,
+                          FKeyNames(FAirVRInputKey::LThumbstick.GetFName(), EKeys::MotionController_Left_Thumbstick.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickUp,
+                          FKeyNames(FAirVRInputKey::LThumbstickUp.GetFName(), EKeys::MotionController_Left_Thumbstick_Up.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickDown,
+                          FKeyNames(FAirVRInputKey::LThumbstickDown.GetFName(), EKeys::MotionController_Left_Thumbstick_Down.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickLeft,
+                          FKeyNames(FAirVRInputKey::LThumbstickLeft.GetFName(), EKeys::MotionController_Left_Thumbstick_Left.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLThumbstickRight,
+                          FKeyNames(FAirVRInputKey::LThumbstickRight.GetFName(), EKeys::MotionController_Left_Thumbstick_Right.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonA,
+                          FKeyNames(FAirVRInputKey::RButtonA.GetFName(), EKeys::MotionController_Right_FaceButton1.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonB,
+                          FKeyNames(FAirVRInputKey::RButtonB.GetFName(), EKeys::MotionController_Right_FaceButton2.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRIndexTrigger,
+                          FKeyNames(FAirVRInputKey::RTrigger.GetFName(), EKeys::MotionController_Right_Trigger.GetFName()));
+    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisRIndexTrigger,
+                        FKeyNames(FAirVRInputKey::RTriggerAxis.GetFName(), EKeys::MotionController_Right_TriggerAxis.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRHandTrigger,
+                          FKeyNames(FAirVRInputKey::RGrip.GetFName(), EKeys::MotionController_Right_Grip1.GetFName()));
+    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisRHandTrigger,
+                        FKeyNames(FAirVRInputKey::RGripAxis.GetFName(), EKeys::MotionController_Right_Grip1Axis.GetFName()));
     DispatchControlAxis2D(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::Axis2DRThumbstick,
-                          EKeys::MotionController_Right_Thumbstick_X.GetFName(), EKeys::MotionController_Right_Thumbstick_Y.GetFName());
-    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisRIndexTrigger, EKeys::MotionController_Right_TriggerAxis.GetFName());
-    DispatchControlAxis(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::AxisRHandTrigger, EKeys::MotionController_Right_Grip1Axis.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstick, EKeys::MotionController_Right_Thumbstick.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRIndexTrigger, EKeys::MotionController_Right_Trigger.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRHandTrigger, EKeys::MotionController_Right_Grip1.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonA, EKeys::MotionController_Right_FaceButton1.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonB, EKeys::MotionController_Right_FaceButton2.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickUp, EKeys::MotionController_Right_Thumbstick_Up.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickDown, EKeys::MotionController_Right_Thumbstick_Down.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickLeft, EKeys::MotionController_Right_Thumbstick_Left.GetFName());
-    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickRight, EKeys::MotionController_Right_Thumbstick_Right.GetFName());
+                          FKeyNames(FAirVRInputKey::RThumbstickX.GetFName(), EKeys::MotionController_Right_Thumbstick_X.GetFName()),
+                          FKeyNames(FAirVRInputKey::RThumbstickY.GetFName(), EKeys::MotionController_Right_Thumbstick_Y.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstick,
+                          FKeyNames(FAirVRInputKey::RThumbstick.GetFName(), EKeys::MotionController_Right_Thumbstick.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickUp,
+                          FKeyNames(FAirVRInputKey::RThumbstickUp.GetFName(), EKeys::MotionController_Right_Thumbstick_Up.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickDown,
+                          FKeyNames(FAirVRInputKey::RThumbstickDown.GetFName(), EKeys::MotionController_Right_Thumbstick_Down.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickLeft,
+                          FKeyNames(FAirVRInputKey::RThumbstickLeft.GetFName(), EKeys::MotionController_Right_Thumbstick_Left.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRThumbstickRight,
+                          FKeyNames(FAirVRInputKey::RThumbstickRight.GetFName(), EKeys::MotionController_Right_Thumbstick_Right.GetFName()));
+
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonTouchpad,
+                          FKeyNames(FAirVRInputKey::TouchpadClick.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::TouchTouchpad,
+                          FKeyNames(FAirVRInputKey::TouchpadTouch.GetFName()));
+    DispatchControlAxis2D(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::Axis2DTouchpad,
+                          FKeyNames(FAirVRInputKey::TouchpadX.GetFName()),
+                          FKeyNames(FAirVRInputKey::TouchpadY.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonUp,
+                          FKeyNames(FAirVRInputKey::TouchpadUp.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonDown,
+                          FKeyNames(FAirVRInputKey::TouchpadDown.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonLeft,
+                          FKeyNames(FAirVRInputKey::TouchpadLeft.GetFName()));
+    DispatchControlButton(MessageHandler, FAirVRInputDeviceType::Controller, (uint8_t)AirVRControllerKey::ButtonRight,
+                          FKeyNames(FAirVRInputKey::TouchpadRight.GetFName()));
 }
 
-void FAirVRCameraRigInput::DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName KeyForX, FName KeyForY)
+void FAirVRCameraRigInput::DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& KeyForX, const FKeyNames& KeyForY)
 {
     FVector2D Axis2D = UAirVRServerFunctionLibrary::GetInputAxis2D(ControllerID, Device, Control);
 
-    MessageHandler.OnControllerAnalog(KeyForX, ControllerID, Axis2D.X);
-    MessageHandler.OnControllerAnalog(KeyForY, ControllerID, Axis2D.Y);
+    OnControllerAnalog(MessageHandler, KeyForX, ControllerID, Axis2D.X);
+    OnControllerAnalog(MessageHandler, KeyForY, ControllerID, Axis2D.Y);
 }
 
-void FAirVRCameraRigInput::DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKeyForX, FName LeftKeyForY, FName RightKeyForX, FName RightKeyForY)
+void FAirVRCameraRigInput::DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, 
+                                                 const FKeyNames& LeftKeyForX, const FKeyNames& LeftKeyForY, const FKeyNames& RightKeyForX, const FKeyNames& RightKeyForY)
 {
     FVector2D Axis2D = UAirVRServerFunctionLibrary::GetInputAxis2D(ControllerID, Device, Control);
 
-    MessageHandler.OnControllerAnalog(LeftKeyForX, ControllerID, Axis2D.X);
-    MessageHandler.OnControllerAnalog(LeftKeyForY, ControllerID, Axis2D.Y);
-    MessageHandler.OnControllerAnalog(RightKeyForX, ControllerID, Axis2D.X);
-    MessageHandler.OnControllerAnalog(RightKeyForY, ControllerID, Axis2D.Y);
+    OnControllerAnalog(MessageHandler, LeftKeyForX, ControllerID, Axis2D.X);
+    OnControllerAnalog(MessageHandler, LeftKeyForY, ControllerID, Axis2D.Y);
+    OnControllerAnalog(MessageHandler, RightKeyForX, ControllerID, Axis2D.X);
+    OnControllerAnalog(MessageHandler, RightKeyForY, ControllerID, Axis2D.Y);
 }
 
-void FAirVRCameraRigInput::DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName Key)
+void FAirVRCameraRigInput::DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Key)
 {
-    MessageHandler.OnControllerAnalog(Key, ControllerID, UAirVRServerFunctionLibrary::GetInputAxis(ControllerID, Device, Control));
+    OnControllerAnalog(MessageHandler, Key, ControllerID, UAirVRServerFunctionLibrary::GetInputAxis(ControllerID, Device, Control));
 }
 
-void FAirVRCameraRigInput::DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKey, FName RightKey)
+void FAirVRCameraRigInput::DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& LeftKey, const FKeyNames& RightKey)
 {
     float Value = UAirVRServerFunctionLibrary::GetInputAxis(ControllerID, Device, Control);
-    MessageHandler.OnControllerAnalog(LeftKey, ControllerID, Value);
-    MessageHandler.OnControllerAnalog(RightKey, ControllerID, Value);
+    OnControllerAnalog(MessageHandler, LeftKey, ControllerID, Value);
+    OnControllerAnalog(MessageHandler, RightKey, ControllerID, Value);
 }
 
-void FAirVRCameraRigInput::DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName Key)
+void FAirVRCameraRigInput::DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Key)
 {
     if (UAirVRServerFunctionLibrary::GetInputButtonDown(ControllerID, Device, Control)) {
-        MessageHandler.OnControllerButtonPressed(Key, ControllerID, false);
+        OnControllerButtonPressed(MessageHandler, Key, ControllerID, false);
     }
     if (UAirVRServerFunctionLibrary::GetInputButtonUp(ControllerID, Device, Control)) {
-        MessageHandler.OnControllerButtonReleased(Key, ControllerID, false);
+        OnControllerButtonReleased(MessageHandler, Key, ControllerID, false);
     }
 }
 
-void FAirVRCameraRigInput::DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKey, FName RightKey)
+void FAirVRCameraRigInput::DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& LeftKey, const FKeyNames& RightKey)
 {
     if (UAirVRServerFunctionLibrary::GetInputButtonDown(ControllerID, Device, Control)) {
-        MessageHandler.OnControllerButtonPressed(LeftKey, ControllerID, false);
-        MessageHandler.OnControllerButtonPressed(RightKey, ControllerID, false);
+        OnControllerButtonPressed(MessageHandler, LeftKey, ControllerID, false);
+        OnControllerButtonPressed(MessageHandler, RightKey, ControllerID, false);
     }
     if (UAirVRServerFunctionLibrary::GetInputButtonUp(ControllerID, Device, Control)) {
-        MessageHandler.OnControllerButtonReleased(LeftKey, ControllerID, false);
-        MessageHandler.OnControllerButtonReleased(RightKey, ControllerID, false);
+        OnControllerButtonReleased(MessageHandler, LeftKey, ControllerID, false);
+        OnControllerButtonReleased(MessageHandler, RightKey, ControllerID, false);
+    }
+}
+
+void FAirVRCameraRigInput::OnControllerAnalog(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 InControllerID, float Value)
+{
+    MessageHandler.OnControllerAnalog(Key.Main, InControllerID, Value);
+
+    if (!Key.Emulated.IsNone()) {
+        MessageHandler.OnControllerAnalog(Key.Emulated, InControllerID, Value);
+    }
+}
+void FAirVRCameraRigInput::OnControllerButtonPressed(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 InControllerID, bool IsRepeat)
+{
+    MessageHandler.OnControllerButtonPressed(Key.Main, InControllerID, IsRepeat);
+
+    if (!Key.Emulated.IsNone()) {
+        MessageHandler.OnControllerButtonPressed(Key.Emulated, InControllerID, IsRepeat);
+    }
+}
+void FAirVRCameraRigInput::OnControllerButtonReleased(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 InControllerID, bool IsRepeat)
+{
+    MessageHandler.OnControllerButtonReleased(Key.Main, InControllerID, IsRepeat);
+
+    if (!Key.Emulated.IsNone()) {
+        MessageHandler.OnControllerButtonReleased(Key.Emulated, InControllerID, IsRepeat);
     }
 }

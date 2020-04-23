@@ -84,10 +84,10 @@ void FAirVRPlayerCameraRigMap::OnStartGameFrame(FWorldContext& WorldContext)
     UpdatePlayerLists(WorldContext);
 }
 
-void FAirVRPlayerCameraRigMap::UpdateCameraRigs()
+void FAirVRPlayerCameraRigMap::UpdateCameraRigs(FWorldContext& WorldContext)
 {
     for (auto& It : BoundPlayers) {
-        It.Value.CameraRig->Update();
+        It.Value.CameraRig->Update(WorldContext);
     }
 }
 

@@ -119,7 +119,7 @@ public:
     void Reset();
 
     void OnStartGameFrame(FWorldContext& WorldContext);
-    void UpdateCameraRigs();
+    void UpdateCameraRigs(FWorldContext& WorldContext);
     void OnEndGameFrame(FWorldContext& WorldContext, FVector2D& MaxRenderTargetSize);
 
 private:

@@ -28,6 +28,8 @@ enum class AirVRLeftHandTrackerKey
 {
     Transform = 0,
     RaycastHitResult,
+    Vibrate,
+    RenderOnClient,
 
     // ADD ADDITIONAL KEYS HERE
 
@@ -38,6 +40,8 @@ enum class AirVRRightHandTrackerKey
 {
     Transform = 0,
     RaycastHitResult,
+    Vibrate,
+    RenderOnClient,
 
     // ADD ADDITIONAL KEYS HERE
 
@@ -88,4 +92,12 @@ enum class AirVRControllerKey {
     ButtonRThumbstickRight,
 
     Max
+};
+
+enum class AirVRHapticVibration 
+{
+    None = 0,
+
+    OneTime_Short,
+    OneTime_Long
 };

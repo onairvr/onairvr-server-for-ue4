@@ -14,3 +14,5 @@
 #include "Runtime/Launch/Resources/Version.h"
 
 #include "IAirVRServerInputPlugin.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogonAirVRServerInput, Verbose, All);
