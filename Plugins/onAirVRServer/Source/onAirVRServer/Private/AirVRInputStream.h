@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "Engine.h"
 #include "FixedRateTimer.h"
 
 #include "Windows/AllowWindowsPlatformTypes.h"
