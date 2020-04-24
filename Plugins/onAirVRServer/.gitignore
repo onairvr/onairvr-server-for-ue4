@@ -6,7 +6,7 @@ Intermediate/
 Binaries/*
 !Binaries/Win64
 Binaries/Win64/*
-!Binaries/Win64/onAirVRUnrealServerPlugin.dll
-!Binaries/Win64/onAirVRUnrealServerPlugin.lib
+!Binaries/Win64/ocs.dll
+!Binaries/Win64/ocs.lib
 
 
