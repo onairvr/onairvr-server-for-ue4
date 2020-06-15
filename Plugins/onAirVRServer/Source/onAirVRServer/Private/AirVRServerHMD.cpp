@@ -720,7 +720,7 @@ void FAirVRServerHMD::OnBeginRendering_GameThread()
 			RenderItem.RenderCameraRigRequests.Add(FAirVRRenderCameraRigQueue::RenderCameraRigRequest(MapItem.CameraRig->GetHeadOrientation(true),
 				MapItem.CameraRig->GetTrackingTimeStamp(),
 				MapItem.bEncode ? MapItem.GetRenderViewport(eSSP_FULL) : FIntRect(),
-				MapItem.GetRenderViewport(eSSP_LEFT_EYE),
+                MapItem.GetRenderViewport(eSSP_LEFT_EYE),
 				MapItem.ScreenViewport,
 				MapItem.CameraRig->IsBound() ? MapItem.CameraRig->GetPlayerID() : -1));
 		}
@@ -821,10 +821,8 @@ void FAirVRServerHMD::AdjustViewRect(enum EStereoscopicPass StereoPass, int32& X
     FIntRect Viewport = Item.GetRenderViewport(StereoPass);
     X = Viewport.Min.X;
     Y = Viewport.Min.Y;
-    SizeX = (StereoPass == eSSP_RIGHT_EYE && Item.bIsStereoscopic == false) ? 0 : Viewport.Width();
-    SizeY = (StereoPass == eSSP_RIGHT_EYE && Item.bIsStereoscopic == false) ? 0 : Viewport.Height();
-    
-    // A View of zero-area (SizeX = SizeY = 0) will be discarded during the view calculation of a local player.
+    SizeX = Viewport.Width();
+    SizeY = Viewport.Height();
 }
 
 FMatrix FAirVRServerHMD::GetStereoProjectionMatrix(const enum EStereoscopicPass StereoPassType) const
