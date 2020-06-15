@@ -55,7 +55,7 @@ FAirVRControllerInputDevice::FAirVRControllerInputDevice() {
 void FAirVRControllerInputDevice::UpdateExtendedControls() {
     const float AxisAsButtonThreshold = 0.5f;
 
-    ONAIRVR_VECTOR2D axis2d;
+    OCS_VECTOR2D axis2d;
     bool down = false;
 
     GetTouch((uint8)AirVRControllerKey::Touchpad, &axis2d, &down);

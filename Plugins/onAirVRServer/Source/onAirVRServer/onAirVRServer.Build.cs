@@ -52,14 +52,14 @@ namespace UnrealBuildTool.Rules
             }
 
             string BinariesPath = Path.Combine(ModuleDirectory, "..", "..", "Binaries", "Win64");
-            string AirVRServerDllName = "onAirVRUnrealServerPlugin.dll";
-            string AirVRServerDllPath = Path.Combine(BinariesPath, AirVRServerDllName);
-            string AirVRServerLibPath = Path.Combine(BinariesPath, "onAirVRUnrealServerPlugin.lib");
+            string OCSDllName = "ocs.dll";
+            string OCSDllPath = Path.Combine(BinariesPath, OCSDllName);
+            string OCSLibPath = Path.Combine(BinariesPath, "ocs.lib");
 
-            PublicAdditionalLibraries.Add(AirVRServerLibPath);
+            PublicAdditionalLibraries.Add(OCSLibPath);
 
-            PublicDelayLoadDLLs.Add(AirVRServerDllName);
-            RuntimeDependencies.Add(AirVRServerDllPath);
+            PublicDelayLoadDLLs.Add(OCSDllName);
+            RuntimeDependencies.Add(OCSDllPath);
         }
     }
 }

@@ -19,9 +19,9 @@ protected:
 
     // implement FAirVRTrackingModel
 protected:
-    virtual void OnUpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config,
-        const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
-        FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation) override;
+    virtual void OnUpdateEyePose(const OCS_CLIENT_CONFIG& Config,
+                                 const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
+                                 FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation) override;
 };
 
 class FAirVRIPDOnlyTrackingModel : public FAirVRTrackingModel
@@ -33,9 +33,9 @@ protected:
 
     // implements FAirVRTrackingModel
 protected:
-    virtual void OnUpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config,
-        const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
-        FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation) override;
+    virtual void OnUpdateEyePose(const OCS_CLIENT_CONFIG& Config,
+                                 const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
+                                 FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation) override;
 };
 
 class FAirVRExternalTrackingModel : public FAirVRTrackingModel
@@ -52,9 +52,9 @@ public:
 
 protected:
     virtual FQuat GetHMDTrackingRootRotation() const override;
-    virtual void OnUpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config,
-        const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
-        FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation) override;
+    virtual void OnUpdateEyePose(const OCS_CLIENT_CONFIG& Config,
+                                 const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
+                                 FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation) override;
 
 private:
     FVector TrackerLocation;
@@ -92,7 +92,7 @@ void FAirVRTrackingModel::StopTracking()
     HMDToPlayerSpaceMatrix = FMatrix::Identity;
 }
 
-void FAirVRTrackingModel::UpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config, const ONAIRVR_VECTOR3D& CenterEyePosition, const ONAIRVR_QUATERNION& CenterEyeOrientation)
+void FAirVRTrackingModel::UpdateEyePose(const OCS_CLIENT_CONFIG& Config, const OCS_VECTOR3D& CenterEyePosition, const OCS_QUATERNION& CenterEyeOrientation)
 {
     IPD = Config.ipd;
 
@@ -150,24 +150,24 @@ FQuat FAirVRTrackingModel::GetHMDTrackingRootRotation() const
 FAirVRHeadTrackingModel::FAirVRHeadTrackingModel(IAirVRTrackingModelContext* InContext) : FAirVRTrackingModel(InContext)
 {}
 
-void FAirVRHeadTrackingModel::OnUpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config,
-                                              const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
+void FAirVRHeadTrackingModel::OnUpdateEyePose(const OCS_CLIENT_CONFIG& Config,
+                                              const FVector InHMDSpaceCenterEyePosition, const FQuat& InHMDSpaceCenterEyeOrientation,
                                               FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation)
 {
-    OutPlayerSpaceCenterEyePosition = HMDSpaceCenterEyePosition;
-    OutPlayerSpaceCenterEyeOrientation = HMDSpaceCenterEyeOrientation;
+    OutPlayerSpaceCenterEyePosition = InHMDSpaceCenterEyePosition;
+    OutPlayerSpaceCenterEyeOrientation = InHMDSpaceCenterEyeOrientation;
 }
 
 FAirVRIPDOnlyTrackingModel::FAirVRIPDOnlyTrackingModel(IAirVRTrackingModelContext* InContext)
     : FAirVRTrackingModel(InContext)
 {}
 
-void FAirVRIPDOnlyTrackingModel::OnUpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config,
-                                                 const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
+void FAirVRIPDOnlyTrackingModel::OnUpdateEyePose(const OCS_CLIENT_CONFIG& Config,
+                                                 const FVector InHMDSpaceCenterEyePosition, const FQuat& InHMDSpaceCenterEyeOrientation,
                                                  FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation)
 {
     OutPlayerSpaceCenterEyePosition = FVector::ZeroVector;
-    OutPlayerSpaceCenterEyeOrientation = HMDSpaceCenterEyeOrientation;
+    OutPlayerSpaceCenterEyeOrientation = InHMDSpaceCenterEyeOrientation;
 }
 
 FAirVRExternalTrackingModel::FAirVRExternalTrackingModel(IAirVRTrackingModelContext* InContext)
@@ -196,10 +196,10 @@ FQuat FAirVRExternalTrackingModel::GetHMDTrackingRootRotation() const
     return TrackerRotationOnIdentityHMDOrientation;
 }
 
-void FAirVRExternalTrackingModel::OnUpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config,
-                                                  const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
+void FAirVRExternalTrackingModel::OnUpdateEyePose(const OCS_CLIENT_CONFIG& Config,
+                                                  const FVector InHMDSpaceCenterEyePosition, const FQuat& InHMDSpaceCenterEyeOrientation,
                                                   FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation)
 {
     OutPlayerSpaceCenterEyePosition = TrackerLocation;
-    OutPlayerSpaceCenterEyeOrientation = TrackerRotationOnIdentityHMDOrientation * HMDSpaceCenterEyeOrientation;
+    OutPlayerSpaceCenterEyeOrientation = TrackerRotationOnIdentityHMDOrientation * InHMDSpaceCenterEyeOrientation;
 }

@@ -78,7 +78,9 @@ public:
     bool IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device) const;
     void EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier);
     void DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device);
-    void FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    void EnableRaycastHit(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bEnable);
+    void UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    void UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient);
 
     //for onAirVRServerInput
     void GetCurrentPlayers(TArray<int32>& Result);
@@ -177,9 +179,11 @@ private:
     void StartupAirVRServer(FWorldContext& WorldContext);
     void ShutdownAirVRServer();
     void AddAudioSendToMasterSubmix(FWorldContext& WorldContext);
+    void RemoveAudioSendFromMasterSubmix(FWorldContext& WorldContext);
     bool IsTrackedDevice(FAirVRInputDeviceType Device) const;
     const char* ParseInputDeviceName(FAirVRInputDeviceType Device) const;
     uint8 ParseRaycastResultFeedbackControlID(FAirVRInputDeviceType Device) const;
+    uint8 ParseRenderOnClientControlID(FAirVRInputDeviceType Device) const;
         
 private:
     void* AirVRServerDllHandle;

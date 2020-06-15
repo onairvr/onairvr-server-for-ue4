@@ -77,7 +77,9 @@ public:
     static bool IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device);
     static void EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier);
     static void DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device);
-    static void FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    static void EnableRaycastHit(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bEnable);
+    static void UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    static void UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient);
 
     // internal interfaces for onAirVRServerInput
     static void GetCurrentPlayers(TArray<int32>& Result);

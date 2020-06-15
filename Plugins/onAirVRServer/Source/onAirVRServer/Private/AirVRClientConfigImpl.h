@@ -11,7 +11,7 @@
 
 #include "UObject/NoExportTypes.h"
 
-#include "onairvr_server.h"
+#include "ocs_server.h"
 
 #include "AirVRClientConfig.h"
 #include "AirVRClientConfigImpl.generated.h"
@@ -25,5 +25,5 @@ public:
     UAirVRClientConfigImpl();
 	
 public:
-    void SetConfig(const ONAIRVR_CLIENT_CONFIG& Config, float WorldToMeters);
+    void SetConfig(const OCS_CLIENT_CONFIG& Config, float WorldToMeters);
 };

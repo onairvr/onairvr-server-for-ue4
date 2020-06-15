@@ -9,11 +9,12 @@
 
 #pragma once
 
+#include "Engine.h"
 #include "FixedRateTimer.h"
 
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "onairvr_input.h"
-#include "onairvr_server.h"
+#include "ocs_server.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 
 class FAirVRInputBase
@@ -40,13 +41,13 @@ private:
 class FAirVRInputSender  : public FAirVRInputBase
 {
 public:
-    virtual void PendInputsPerFrame(class FAirVRInputStream* InputStream) = 0;
+    virtual void PendInputsPerFrame(FWorldContext& WorldContext, class FAirVRInputStream* InputStream) = 0;
 };
 
 class FAirVRInputReceiver : public FAirVRInputBase
 {
 public:
-    virtual void PollInputsPerFrame(class FAirVRInputStream* InputStream) = 0;
+    virtual void PollInputsPerFrame(FWorldContext& WorldContext, class FAirVRInputStream* InputStream) = 0;
 };
 
 class FAirVRInputStream {
@@ -59,16 +60,15 @@ public:
     void Start();
     void Stop();
     void Cleanup();
-    void Update();
+    void Update(FWorldContext& WorldContext);
     void Reset();
 
     void HandleRemoteInputDeviceRegistered(const FString& DeviceName, uint8 DeviceID);
     void HandleRemoteInputDeviceUnregistered(uint8 DeviceID);
 
-	void GetTransform(FString DeviceName, uint8 ControlID, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation) const;
-    void GetTransform(FString DeviceName, uint8 ControlID, double& TimeStamp, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation) const;
-    ONAIRVR_QUATERNION GetOrientation(const FString& DeviceName, uint8 ControlID) const;
-    ONAIRVR_VECTOR2D GetAxis2D(const FString& DeviceName, uint8 ControlID) const;
+	void GetTransform(FString DeviceName, uint8 ControlID, OCS_VECTOR3D* Position, OCS_QUATERNION* Orientation) const;
+    OCS_QUATERNION GetOrientation(const FString& DeviceName, uint8 ControlID) const;
+    OCS_VECTOR2D GetAxis2D(const FString& DeviceName, uint8 ControlID) const;
     float GetAxis(const FString& DeviceName, uint8 ControlID) const;
     float GetButtonRaw(const FString& DeviceName, uint8 ControlID) const;
     bool GetButton(const FString& DeviceName, uint8 ControlID) const;
@@ -79,16 +79,18 @@ public:
     bool IsDeviceFeedbackEnabled(const FString& DeviceName) const;
     void EnableTrackedDeviceFeedback(const FString& DeviceName, const void* CookieTexture, int CookieTextureSize, float CookieDepthScaleMultiplier);
     void DisableDeviceFeedback(const FString& DeviceName);
-    void FeedbackTrackedDevice(const FString& DeviceName, uint8 ControlID, const ONAIRVR_VECTOR3D& RayOrigin, const ONAIRVR_VECTOR3D& HitPosition, const ONAIRVR_VECTOR3D& HitNormal);
+    void EnableRaycastHit(const FString& DeviceName, bool bEnable);
+    void UpdateRaycastHitResult(const FString& DeviceName, const OCS_VECTOR3D& RayOrigin, const OCS_VECTOR3D& HitPosition, const OCS_VECTOR3D& HitNormal);
+    void UpdateRenderOnClient(const FString& DeviceName, bool bRenderOnClient);
 
 public:
     // for senders and receivers
-    void PendInput(FAirVRInputSender* Sender, uint8 ControlID, const float* Values, int Length, ONAIRVR_INPUT_SENDING_POLICY Policy);
+    void PendInput(FAirVRInputSender* Sender, uint8 ControlID, const float* Values, int Length, OCS_INPUT_SENDING_POLICY Policy);
+    void PendInput(FAirVRInputSender* Sender, uint8 ControlID, const uint8* Values, int Length, OCS_INPUT_SENDING_POLICY Policy);
     bool GetInput(FAirVRInputReceiver* Receiver, uint8 ControlID, float* Values, int Length);
-	bool GetInputWithTimeStamp(FAirVRInputReceiver* Receiver, uint8 ControlID, float* Values, int Length, double* TimeStamp);
 
 private:
-    class FAirVRTrackedDeviceFeedback* CreateTrackedDeviceFeedback(const FString& DeviceName, const void* CookieTexture, int CookieTextureSize, float CookieDepthScaleMultiplier) const;
+    class FAirVRInputDeviceFeedback* CreateTrackedDeviceFeedback(const FString& DeviceName, const void* CookieTexture, int CookieTextureSize, float CookieDepthScaleMultiplier) const;
 
     void AddInputDevice(class FAirVRInputDevice* Device);
 
@@ -98,5 +100,5 @@ private:
     FFixedRateTimer InputSendTimer;
 
     TMap<FString, class FAirVRInputDevice*> InputDevices;
-    TMap<FString, class FAirVRTrackedDeviceFeedback*> DeviceFeedbacks;
+    TMap<FString, class FAirVRInputDeviceFeedback*> DeviceFeedbacks;
 };
