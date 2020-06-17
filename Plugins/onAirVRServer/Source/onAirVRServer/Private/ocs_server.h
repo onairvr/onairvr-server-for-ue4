@@ -129,7 +129,7 @@ extern "C"
     void OCS_API ocs_InitModule(void* gfxDevice, int TextureFormat);
 
     int OCS_API ocs_SetLicenseFile(const char* path);
-    void OCS_API ocs_SetVideoEncoderParameters(float maxFrameRate, float defaultFrameRate, int maxBitRate, int defaultBitRate, int gopCount);
+    void OCS_API ocs_SetVideoEncoderParameters(float applicationFrameRate, int gopCount);
     int OCS_API ocs_StartUp(int maxClientCount, int portSTAP, int portAMP, bool loopbackOnlyForSTAP, int audioSampleRate);
     void OCS_API ocs_StartUp_RenderThread(void* gfxDevice);
     void OCS_API ocs_Shutdown();
@@ -152,7 +152,6 @@ extern "C"
     void OCS_API ocs_EncodeVideoFrame(int playerID, const OCS_VIEWPORT& viewport, int64_t trackingTimestamp, const OCS_QUATERNION& orientation, void* RenderTargetTexture);
     void OCS_API ocs_EncodeAudioFrame(int playerID, const float* data, int sampleCount, int channels, double timeStamp);
     void OCS_API ocs_EncodeAudioFrameForAllPlayers(const float* data, int sampleCount, int channels, double timeStamp);
-    void OCS_API ocs_AdjustBitRate_RenderThread(int playerID, uint32_t bitRate);
  
     void OCS_API ocs_AcceptPlayer(int playerID);
     void OCS_API ocs_Update(float deltaTime);

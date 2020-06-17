@@ -269,6 +269,15 @@ void FAirVRCameraRig::AirVREventMediaStreamCleanedUp(int InPlayerID)
     }
 }
 
+void FAirVRCameraRig::AirVREventMediaStreamSetCameraProjection(int InPlayerID, const float* Projection) 
+{
+    if (PlayerID == InPlayerID) {
+        for (int i = 0; i < 4; i++) {
+            CameraProjection[i] = Projection[i];
+        }
+    }
+}
+
 void FAirVRCameraRig::AirVREventInputStreamRemoteInputDeviceRegistered(int InPlayerID, const FString& DeviceName, uint8 DeviceID)
 {
     if (PlayerID == InPlayerID) {

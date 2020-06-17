@@ -75,14 +75,6 @@ void UAirVRServerFunctionLibrary::ResetOrientationAndPosition(int32 PlayerContro
     }
 }
 
-void UAirVRServerFunctionLibrary::AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps)
-{
-    FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        HMD->AdjustBitrate(PlayerControllerID, BitrateInKbps);
-    }
-}
-
 void UAirVRServerFunctionLibrary::Disconnect(int32 PlayerControllerID)
 {
     FAirVRServerHMD* HMD = GetHMD();

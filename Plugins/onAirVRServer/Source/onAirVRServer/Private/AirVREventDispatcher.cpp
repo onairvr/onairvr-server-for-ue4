@@ -32,12 +32,14 @@ static const char* NameDeactivated      = "Deactivated";
 static const char* NameDestroyed        = "Destroyed";
 static const char* NameShowCopyright    = "ShowCopyright";
 
-static const char* FromMediaStream      = "MediaStream";
-static const char* NameInitialized      = "Initialized";
-static const char* NameStarted          = "Started";
-static const char* NameEncodeVideoFrame = "EncodeVideoFrame";
-static const char* NameStopped          = "Stopped";
-static const char* NameCleanedUp        = "CleanedUp";
+static const char* FromMediaStream          = "MediaStream";
+static const char* NameInitialized          = "Initialized";
+static const char* NameStarted              = "Started";
+static const char* NameEncodeVideoFrame     = "EncodeVideoFrame";
+static const char* NameStopped              = "Stopped";
+static const char* NameCleanedUp            = "CleanedUp";
+static const char* NameSetCameraProjection  = "SetCameraProjection";
+static const char* KeyCameraProjection      = "CameraProjection";
 
 static const char* FromInputStream                      = "InputStream";
 static const char* NameRemoteInputDeviceRegistered      = "RemoteInputDeviceRegistered";
@@ -87,22 +89,6 @@ void FAirVREventDispatcher::DispatchMessages()
     }
 }
 
-//uint32 FAirVREventDispatcher::Base64DataLength(FString& Data) const
-//{
-//    check(Data.Len() % 4 == 0);
-//    return 3 * Data.Len() / 4;
-//}
-//
-//uint32 FAirVREventDispatcher::DecodeBase64(FString& Encoded, uint8* Decoded, uint32 Length) const
-//{
-//    FTCHARToUTF8 EncodedUTF8(*Encoded);
-//    uint32 Pad = 0;
-//    if (FBase64::Decode(EncodedUTF8.Get(), Length, Decoded, Pad)) {
-//        return Length - Pad;
-//    }
-//    return 0;
-//}
-
 void FAirVREventDispatcher::DispatchSessionMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message)
 {
     if (Message->GetStringField(KeyName).Equals(NameConnected)) {
@@ -148,6 +134,19 @@ void FAirVREventDispatcher::DispatchMediaStreamMessage(int PlayerID, const TShar
     }
     else if (Message->GetStringField(KeyName).Equals(NameCleanedUp)) {
         NotifyMediaStreamCleanedUp(PlayerID);
+    }
+    else if (Message->GetStringField(KeyName).Equals(NameSetCameraProjection)) {
+        check(Message->HasField(KeyCameraProjection));
+
+        auto CameraProjection = Message->GetArrayField(KeyCameraProjection);
+        check(CameraProjection.Num() == 4);
+
+        float Projection[4];
+        for (int i = 0; i < 4; i++) {
+            Projection[i] = CameraProjection[i].Get()->AsNumber();
+        }
+
+        NotifyMediaStreamSetCameraProjection(PlayerID, Projection);
     }
 }
 
@@ -247,6 +246,13 @@ void FAirVREventDispatcher::NotifyMediaStreamCleanedUp(int PlayerID) const
 {
     for (auto Listener : Listeners) {
         Listener->AirVREventMediaStreamCleanedUp(PlayerID);
+    }
+}
+
+void FAirVREventDispatcher::NotifyMediaStreamSetCameraProjection(int PlayerID, const float* Projection) const 
+{
+    for (auto Listener : Listeners) {
+        Listener->AirVREventMediaStreamSetCameraProjection(PlayerID, Projection);
     }
 }
 

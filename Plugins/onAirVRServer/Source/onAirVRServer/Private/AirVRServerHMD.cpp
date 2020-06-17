@@ -218,23 +218,6 @@ void FAirVRServerHMD::ResetOrientationAndPosition(int32 PlayerControllerID)
     }
 }
 
-void FAirVRServerHMD::AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps)
-{
-    check(IsInGameThread());
-
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) && Item.CameraRig->IsBound()) {
-        int InPlayerID = Item.CameraRig->GetPlayerID();
-        uint32 InBitrate = (uint32)(BitrateInKbps * 1000);
-        ENQUEUE_RENDER_COMMAND(ocs_AdjustBitRate_RenderThread)(
-            [InPlayerID, InBitrate](FRHICommandListImmediate& RHICmdList) 
-            {
-                ocs_AdjustBitRate_RenderThread(InPlayerID, InBitrate);
-            }
-        );
-    }
-}
-
 void FAirVRServerHMD::Disconnect(int32 PlayerControllerID)
 {
     check(IsInGameThread());
@@ -519,7 +502,7 @@ bool FAirVRServerHMD::GetInputButtonUp(int32 PlayerControllerID, FAirVRInputDevi
 
 FString FAirVRServerHMD::GetVersionString() const
 {
-    return FString::Printf(TEXT("onAirVR Server for UE4 2.0.0"));
+    return FString::Printf(TEXT("onAirVR Server for UE4 1.10.0"));
 }
 
 bool FAirVRServerHMD::OnStartGameFrame(FWorldContext& WorldContext)
@@ -977,7 +960,7 @@ void FAirVRServerHMD::AirVREventPlayerCreated(int PlayerID)
 
 void FAirVRServerHMD::AirVREventPlayerActivated(int PlayerID)
 {
-    // do nothing
+    
 }
 
 void FAirVRServerHMD::AirVREventPlayerDeactivated(int PlayerID)
@@ -1064,8 +1047,6 @@ void FAirVRServerHMD::HandleStereoEnabled(FWorldContext& WorldContext, bool bEna
 
 void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 {
-    const int MaxVideoBitrate = 160000000;
-
     const UAirVRServerSettings* Settings = GetDefault<UAirVRServerSettings>();
     check(Settings);
     const_cast<UAirVRServerSettings*>(Settings)->ParseCommandLineArgs();
@@ -1073,7 +1054,7 @@ void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 	int ret = ocs_SetLicenseFile(TCHAR_TO_UTF8((WorldContext.World()->WorldType == EWorldType::Game ? *FPaths::Combine(*FPaths::RootDir(), *Settings->LicenseFilePath) :
                                                                                                       *FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins"), TEXT("onAirVRServer"), TEXT("Resources"), TEXT("onairvr.license")))));
     if (ret == OCS_RESULT_OK) {
-        ocs_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, MaxVideoBitrate, Settings->VideoBitrate, 72);
+        ocs_SetVideoEncoderParameters(Settings->ApplicationFrameRate, 0);
 
         FAudioDevice* AudioDevice = GEngine->GetActiveAudioDevice();
         ret = ocs_StartUp(Settings->MaxClientCount, 

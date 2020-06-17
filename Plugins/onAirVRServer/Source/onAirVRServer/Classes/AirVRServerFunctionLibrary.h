@@ -51,9 +51,6 @@ public:
     static void ResetOrientationAndPosition(int32 PlayerControllerID);
 
     UFUNCTION(BlueprintCallable, Category = "onAirVR")
-    static void AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps);
-
-    UFUNCTION(BlueprintCallable, Category = "onAirVR")
     static void Disconnect(int32 PlayerControllerID);
 
     UFUNCTION(BlueprintCallable, Category = "onAirVR")

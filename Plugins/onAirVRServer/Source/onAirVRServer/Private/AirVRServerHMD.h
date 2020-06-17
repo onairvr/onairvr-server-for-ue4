@@ -61,7 +61,6 @@ public:
     bool GetConfig(int32 PlayerControllerID, class UAirVRClientConfig*& Config);
     void GetOrientationAndPosition(int32 PlayerControllerID, FQuat& Orientation, FVector& Position) const;
     void ResetOrientationAndPosition(int32 PlayerControllerID);
-    void AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps);
     void Disconnect(int32 PlayerControllerID);
 
     bool IsInputDeviceAvailable(int32 PlayerControllerID, FAirVRInputDeviceType Device) const;

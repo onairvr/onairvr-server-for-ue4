@@ -28,14 +28,8 @@ public:
     UPROPERTY(GlobalConfig, EditAnywhere, Category = "Server", meta = (DisplayName = "Port", ToolTip = "onAirVR server port number"))
     uint16 PortSTAP;
 
-    UPROPERTY(GlobalConfig, EditAnywhere, Category = "Video", meta = (DisplayName = "Video Bitrate (bps)", ToolTip = "bitrate in which to encode video for each client"))
-    uint32 VideoBitrate;
-
-    UPROPERTY(GlobalConfig, EditAnywhere, Category = "Video", meta = (ClampMin = "1.0", ClampMax = "120.0", DisplayName = "Max Frame Rate", ToolTip = "maximum frame rate per second in which to encode video for each client"))
-    float MaxFrameRate;
-
-    UPROPERTY(GlobalConfig, EditAnywhere, Category = "Video", meta = (ClampMin = "1.0", ClampMax = "120.0", DisplayName = "Default Frame Rate", ToolTip = "default frame rate per second in which to encode video for each client"))
-    float DefaultFrameRate;
+    UPROPERTY(GlobalConfig, EditAnywhere, Category = "Video", meta = (ClampMin = "0.0", ClampMax = "120.0", DisplayName = "Application Frame Rate", ToolTip = "target application frame rate (the video encoding frame rate is also limited to this.)"))
+    float ApplicationFrameRate;
 
     UPROPERTY(GlobalConfig, EditAnywhere, Category = "Audio", meta = (DisplayName = "Broadcast Audio To All Players", ToolTip = "if true, broadcast audio of master submix to all players. (UE4 AudioMixer feature required)"))
     bool BroadcastAudioToAllPlayers;
