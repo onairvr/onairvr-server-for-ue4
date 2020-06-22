@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -13,7 +13,7 @@
 #include "AirVRServerFunctionLibrary.h"
 
 #include "Windows/AllowWindowsPlatformTypes.h"
-#include "onairvr_server.h"
+#include "ocs_server.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 
 class IAirVRTrackingModelContext
@@ -37,7 +37,7 @@ public:
     virtual void StopTracking();
     virtual void UpdateExternalTrackerLocationAndRotation(const FVector& Location, const FQuat& Rotation) {}
 
-    void UpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config, const ONAIRVR_VECTOR3D& CenterEyePosition, const ONAIRVR_QUATERNION& CenterEyeOrientation);
+    void UpdateEyePose(const OCS_CLIENT_CONFIG& Config, const OCS_VECTOR3D& CenterEyePosition, const OCS_QUATERNION& CenterEyeOrientation);
 
     FQuat GetHeadOrientation(bool bInHMDSpace) const;
     FVector GetCenterEyePosition() const;
@@ -51,7 +51,7 @@ protected:
     IAirVRTrackingModelContext* GetContext() const  { return Context; }
 
     virtual FQuat GetHMDTrackingRootRotation() const;
-    virtual void OnUpdateEyePose(const ONAIRVR_CLIENT_CONFIG& Config, 
+    virtual void OnUpdateEyePose(const OCS_CLIENT_CONFIG& Config, 
                                  const FVector HMDSpaceCenterEyePosition, const FQuat& HMDSpaceCenterEyeOrientation,
                                  FVector& OutPlayerSpaceCenterEyePosition, FQuat& OutPlayerSpaceCenterEyeOrientation) = 0;
 

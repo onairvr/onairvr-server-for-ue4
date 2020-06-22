@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -12,7 +12,7 @@
 #include "RHIResources.h"
 
 #include "Windows/AllowWindowsPlatformTypes.h"
-#include "onairvr_server.h"
+#include "ocs_server.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 
 class FAirVRRenderCameraRigQueue
@@ -21,14 +21,14 @@ public:
     struct RenderCameraRigRequest
     {
         FQuat Orientation;
-		double TrackingTimeStamp;
+		int64 TrackingTimeStamp;
         FIntRect SrcRectEncode;
         FIntRect SrcRectScreen;
         FIntRect ScreenViewport;
         bool bEncode;
         int PlayerID;
 
-        RenderCameraRigRequest(const FQuat& InOrientation, double InTrackingTimeStamp, const FIntRect& InSrcRectEncode, const FIntRect& InSrcRectScreen, const FIntRect& InScreenViewport, int InPlayerID = -1)
+        RenderCameraRigRequest(const FQuat& InOrientation, int64 InTrackingTimeStamp, const FIntRect& InSrcRectEncode, const FIntRect& InSrcRectScreen, const FIntRect& InScreenViewport, int InPlayerID = -1)
         {
             Orientation = InOrientation;
 			TrackingTimeStamp = InTrackingTimeStamp;

@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -15,6 +15,15 @@
 
 class FAirVRCameraRigInput
 {
+private:
+    struct FKeyNames {
+        FName Main;
+        FName Emulated;
+
+        FKeyNames(FName InMain) : Main(InMain), Emulated(FName()) {}
+        FKeyNames(FName InMain, FName InEmulated) : Main(InMain), Emulated(InEmulated) {}
+    };
+
 public:
     FAirVRCameraRigInput(int32 InControllerID) : 
         ControllerID(InControllerID), 
@@ -29,12 +38,16 @@ public:
     void UpdateAndDispatch(FGenericApplicationMessageHandler& MessageHandler);
 
 private:
-    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName KeyForX, FName KeyForY);
-    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKeyForX, FName LeftKeyForY, FName RightKeyForX, FName RightKeyForY);
-    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName Key);
-    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKey, FName RightKey);
-    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName Key);
-    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKey, FName RightKey);
+    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& KeyForX, const FKeyNames& KeyForY);
+    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, 
+                               const FKeyNames& LeftKeyForX, const FKeyNames& LeftKeyForY, const FKeyNames& RightKeyForX, const FKeyNames& RightKeyForY);
+    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Key);
+    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& LeftKey, const FKeyNames& RightKey);
+    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Key);
+    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& LeftKey, const FKeyNames& RightKey);
+    void OnControllerAnalog(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 ControllerID, float Value);
+    void OnControllerButtonPressed(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 ControllerID, bool IsRepeat);
+    void OnControllerButtonReleased(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 ControllerID, bool IsRepeat);
 
 private:
     int32 ControllerID;

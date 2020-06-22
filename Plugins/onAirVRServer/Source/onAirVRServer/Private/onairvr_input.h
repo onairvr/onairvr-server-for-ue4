@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -10,11 +10,9 @@
 #pragma once
 
 #define ONAIRVR_INPUT_DEVICE_HEADTRACKER            "HeadTracker"
-#define ONAIRVR_INPUT_DEVICE_TOUCHPAD               "Touchpad"
-#define ONAIRVR_INPUT_DEVICE_GAMEPAD                "Gamepad"
-#define ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER     "TrackedController"
-#define ONAIRVR_INPUT_DEVICE_LEFT_CONTROLLER        "LeftController"
-#define ONAIRVR_INPUT_DEVICE_RIGHT_CONTROLLER       "RightController"
+#define ONAIRVR_INPUT_DEVICE_LEFT_HAND_TRACKER      "LeftHandTracker"
+#define ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER     "RightHandTracker"
+#define ONAIRVR_INPUT_DEVICE_CONTROLLER             "Controller"
 
 enum class AirVRHeadTrackerKey
 {
@@ -26,104 +24,80 @@ enum class AirVRHeadTrackerKey
     Max
 };
 
-enum class AirVRTouchpadKey
+enum class AirVRLeftHandTrackerKey 
 {
+    Transform = 0,
+    RaycastHitResult,
+    Vibrate,
+    RenderOnClient,
+
+    // ADD ADDITIONAL KEYS HERE
+
+    Max
+};
+
+enum class AirVRRightHandTrackerKey 
+{
+    Transform = 0,
+    RaycastHitResult,
+    Vibrate,
+    RenderOnClient,
+
+    // ADD ADDITIONAL KEYS HERE
+
+    Max
+};
+
+enum class AirVRControllerKey {
     Touchpad = 0,
 
-    ButtonBack,
+    ButtonTouchpad,
     ButtonUp,
     ButtonDown,
     ButtonLeft,
     ButtonRight,
 
-    // ADD ADDITIONAL KEYS HERE
-
-    ExtAxis2DPosition,
-    ExtButtonTouch,
-
-    Max
-};
-
-enum class AirVRGamepadKey
-{
-    Axis2DLThumbstick = 0,
+    Axis2DLThumbstick,
     Axis2DRThumbstick,
     AxisLIndexTrigger,
     AxisRIndexTrigger,
-
+    AxisLHandTrigger,
+    AxisRHandTrigger,
     ButtonA,
     ButtonB,
     ButtonX,
     ButtonY,
     ButtonStart,
     ButtonBack,
-    ButtonLShoulder,
-    ButtonRShoulder,
     ButtonLThumbstick,
     ButtonRThumbstick,
-    ButtonDpadUp,
-    ButtonDpadDown,
-    ButtonDpadLeft,
-    ButtonDpadRight,
+    ButtonLShoulder,
+    ButtonRShoulder,
 
     // ADD ADDITIONAL KEYS HERE
 
-    ExtButtonLIndexTrigger,
-    ExtButtonRIndexTrigger,
-    ExtButtonLThumbstickUp,
-    ExtButtonLThumbstickDown,
-    ExtButtonLThumbstickLeft,
-    ExtButtonLThumbstickRight,
-    ExtButtonRThumbstickUp,
-    ExtButtonRThumbstickDown,
-    ExtButtonRThumbstickLeft,
-    ExtButtonRThumbstickRight,
+    Axis2DTouchpad,
+    TouchTouchpad,
+    ButtonLIndexTrigger,
+    ButtonRIndexTrigger,
+    ButtonLHandTrigger,
+    ButtonRHandTrigger,
+    ButtonLThumbstickUp,
+    ButtonLThumbstickDown,
+    ButtonLThumbstickLeft,
+    ButtonLThumbstickRight,
+    ButtonRThumbstickUp,
+    ButtonRThumbstickDown,
+    ButtonRThumbstickLeft,
+    ButtonRThumbstickRight,
 
     Max
 };
 
-enum class AirVRTrackedControllerKey
+enum class AirVRHapticVibration 
 {
-    Touchpad = 0,
-    Transform,
-    RaycastHitResult,
+    None = 0,
 
-    ButtonTouchpad,
-    ButtonBack,
-    ButtonIndexTrigger,
-    ButtonUp,
-    ButtonDown,
-    ButtonLeft,
-    ButtonRight,
-
-    // ADD ADDITIONAL KEYS HERE
-
-    ExtAxis2DTouchPosition,
-    ExtButtonTouch,
-
-    Max
-};
-
-enum class AirVRControllerKey {
-    Transform = 0,
-    RaycastHitResult,
-
-    Axis2DThumbstick,
-    Axis1DIndexTrigger,
-    Axis1DHandTrigger,
-    ButtonThumbstick,
-    ButtonOne,
-    ButtonTwo,
-    ButtonSystem,
-
-    // ADD ADDITIONAL KEYS HERE
-
-    ButtonIndexTrigger,
-    ButtonHandTrigger,
-    ButtonThumbstickUp,
-    ButtonThumbstickDown,
-    ButtonThumbstickLeft,
-    ButtonThumbstickRight,
-
-    Max
+    OneTime_Short,
+    OneTime_Long
 };

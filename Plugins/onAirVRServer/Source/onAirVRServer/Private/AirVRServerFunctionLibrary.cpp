@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -72,14 +72,6 @@ void UAirVRServerFunctionLibrary::ResetOrientationAndPosition(int32 PlayerContro
     FAirVRServerHMD* HMD = GetHMD();
     if (HMD) {
         HMD->ResetOrientationAndPosition(PlayerControllerID);
-    }
-}
-
-void UAirVRServerFunctionLibrary::AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps)
-{
-    FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        HMD->AdjustBitrate(PlayerControllerID, BitrateInKbps);
     }
 }
 
@@ -173,11 +165,27 @@ void UAirVRServerFunctionLibrary::DisableDeviceFeedback(int32 PlayerControllerID
     }
 }
 
-void UAirVRServerFunctionLibrary::FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal)
+void UAirVRServerFunctionLibrary::EnableRaycastHit(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bEnable) 
 {
     FAirVRServerHMD* HMD = GetHMD();
     if (HMD) {
-        HMD->FeedbackTrackedDevice(PlayerControllerID, Device, RayOrigin, HitPosition, HitNormal);
+        HMD->EnableRaycastHit(PlayerControllerID, Device, bEnable);
+    }
+}
+
+void UAirVRServerFunctionLibrary::UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal)
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    if (HMD) {
+        HMD->UpdateRaycastHitResult(PlayerControllerID, Device, RayOrigin, HitPosition, HitNormal);
+    }
+}
+
+void UAirVRServerFunctionLibrary::UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient) 
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    if (HMD) {
+        HMD->UpdateRenderOnClient(PlayerControllerID, Device, bRenderOnClient);
     }
 }
 

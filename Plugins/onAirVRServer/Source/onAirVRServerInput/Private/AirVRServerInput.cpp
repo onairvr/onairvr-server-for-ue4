@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -20,15 +20,43 @@
 
 #define LOCTEXT_NAMESPACE "onAirVRServer"
 
-const FKey FAirVRInputKey::TouchpadPositionX("AirVR_Touchpad_PositionX");
-const FKey FAirVRInputKey::TouchpadPositionY("AirVR_Touchpad_PositionY");
+DEFINE_LOG_CATEGORY(LogonAirVRServerInput);
+
+const FKey FAirVRInputKey::LButtonX("AirVR_Left_Button_X");
+const FKey FAirVRInputKey::LButtonY("AirVR_Left_Button_Y");
+const FKey FAirVRInputKey::LButtonMenu("AirVR_Left_Button_Menu");
+const FKey FAirVRInputKey::LGrip("AirVR_Left_Grip");
+const FKey FAirVRInputKey::LGripAxis("AirVR_Left_Grip_Axis");
+const FKey FAirVRInputKey::LTrigger("AirVR_Left_Trigger");
+const FKey FAirVRInputKey::LTriggerAxis("AirVR_Left_Trigger_Axis");
+const FKey FAirVRInputKey::LThumbstickX("AirVR_Left_Thumbstick_X");
+const FKey FAirVRInputKey::LThumbstickY("AirVR_Left_Thumbstick_Y");
+const FKey FAirVRInputKey::LThumbstick("AirVR_Left_Thumbstick");
+const FKey FAirVRInputKey::LThumbstickUp("AirVR_Left_Thumbstick_Up");
+const FKey FAirVRInputKey::LThumbstickDown("AirVR_Left_Thumbstick_Down");
+const FKey FAirVRInputKey::LThumbstickLeft("AirVR_Left_Thumbstick_Left");
+const FKey FAirVRInputKey::LThumbstickRight("AirVR_Left_Thumbstick_Right");
+const FKey FAirVRInputKey::RButtonA("AirVR_Right_Button_A");
+const FKey FAirVRInputKey::RButtonB("AirVR_Right_Button_B");
+const FKey FAirVRInputKey::RGrip("AirVR_Right_Grip");
+const FKey FAirVRInputKey::RGripAxis("AirVR_Right_Grip_Axis");
+const FKey FAirVRInputKey::RTrigger("AirVR_Right_Trigger");
+const FKey FAirVRInputKey::RTriggerAxis("AirVR_Right_Trigger_Axis");
+const FKey FAirVRInputKey::RThumbstickX("AirVR_Right_Thumbstick_X");
+const FKey FAirVRInputKey::RThumbstickY("AirVR_Right_Thumbstick_Y");
+const FKey FAirVRInputKey::RThumbstick("AirVR_Right_Thumbstick");
+const FKey FAirVRInputKey::RThumbstickUp("AirVR_Right_Thumbstick_Up");
+const FKey FAirVRInputKey::RThumbstickDown("AirVR_Right_Thumbstick_Down");
+const FKey FAirVRInputKey::RThumbstickLeft("AirVR_Right_Thumbstick_Left");
+const FKey FAirVRInputKey::RThumbstickRight("AirVR_Right_Thumbstick_Right");
+const FKey FAirVRInputKey::TouchpadClick("AirVR_Touchpad_Click");
 const FKey FAirVRInputKey::TouchpadTouch("AirVR_Touchpad_Touch");
-const FKey FAirVRInputKey::TouchpadBackButton("AirVR_Touchpad_BackButton");
+const FKey FAirVRInputKey::TouchpadX("AirVR_Touchpad_X");
+const FKey FAirVRInputKey::TouchpadY("AirVR_Touchpad_Y");
 const FKey FAirVRInputKey::TouchpadUp("AirVR_Touchpad_Up");
 const FKey FAirVRInputKey::TouchpadDown("AirVR_Touchpad_Down");
 const FKey FAirVRInputKey::TouchpadLeft("AirVR_Touchpad_Left");
 const FKey FAirVRInputKey::TouchpadRight("AirVR_Touchpad_Right");
-const FKey FAirVRInputKey::TrackedControllerTouchpadTouch("AirVR_Controller_Touch");
 
 class FAirVRServerInput : public IInputDevice, public FXRMotionControllerBase
 {
@@ -62,15 +90,43 @@ public:
 FAirVRServerInput::FAirVRServerInput(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
     : MessageHandler(InMessageHandler)
 {
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadPositionX, LOCTEXT("AirVR_Touchpad_PositionX", "onAirVR Touchpad Position X"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadPositionY, LOCTEXT("AirVR_Touchpad_PositionY", "onAirVR Touchpad Position Y"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadTouch, LOCTEXT("AirVR_Touchpad_Touch", "onAirVR Touchpad Touch"), FKeyDetails::GamepadKey));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadBackButton, LOCTEXT("AirVR_Touchpad_BackButton", "onAirVR Touchpad Back Button"), FKeyDetails::GamepadKey));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadUp, LOCTEXT("AirVR_Touchpad_Up", "onAirVR Touchpad Up"), FKeyDetails::GamepadKey));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadDown, LOCTEXT("AirVR_Touchpad_Down", "onAirVR Touchpad Down"), FKeyDetails::GamepadKey));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadLeft, LOCTEXT("AirVR_Touchpad_Left", "onAirVR Touchpad Left"), FKeyDetails::GamepadKey));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadRight, LOCTEXT("AirVR_Touchpad_Right", "onAirVR Touchpad Right"), FKeyDetails::GamepadKey));
-    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TrackedControllerTouchpadTouch, LOCTEXT("AirVR_Controller_Touch", "onAirVR Tracked Controller Touchpad Touch"), FKeyDetails::GamepadKey));
+    EKeys::AddMenuCategoryDisplayInfo("onAirVR", LOCTEXT("onAirVRSubCategory", "onAirVR"), TEXT("GraphEditor.PadEvent_16x"));
+
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LButtonX, LOCTEXT("AirVR_Left_Button_X", "onAirVR Controller (L) X"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LButtonY, LOCTEXT("AirVR_Left_Button_Y", "onAirVR Controller (L) Y"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LButtonMenu, LOCTEXT("AirVR_Left_Button_Menu", "onAirVR Controller (L) Menu"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LGrip, LOCTEXT("AirVR_Left_Grip", "onAirVR Controller (L) Grip"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LGripAxis, LOCTEXT("AirVR_Left_Grip_Axis", "onAirVR Controller (L) Grip Axis"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LTrigger, LOCTEXT("AirVR_Left_Trigger", "onAirVR Controller (L) Trigger"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LTriggerAxis, LOCTEXT("AirVR_Left_Trigger_Axis", "onAirVR Controller (L) Trigger Axis"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LThumbstickX, LOCTEXT("AirVR_Left_Thumbstick_X", "onAirVR Controller (L) Thumbstick X"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LThumbstickY, LOCTEXT("AirVR_Left_Thumbstick_Y", "onAirVR Controller (L) Thumbstick Y"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LThumbstick, LOCTEXT("AirVR_Left_Thumbstick", "onAirVR Controller (L) Thumbstick"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LThumbstickUp, LOCTEXT("AirVR_Left_Thumbstick_Up", "onAirVR Controller (L) Thumbstick Up"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LThumbstickDown, LOCTEXT("AirVR_Left_Thumbstick_Down", "onAirVR Controller (L) Thumbstick Down"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LThumbstickLeft, LOCTEXT("AirVR_Left_Thumbstick_Left", "onAirVR Controller (L) Thumbstick Left"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::LThumbstickRight, LOCTEXT("AirVR_Left_Thumbstick_Right", "onAirVR Controller (L) Thumbstick Right"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RButtonA, LOCTEXT("AirVR_Right_Button_A", "onAirVR Controller (R) A"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RButtonB, LOCTEXT("AirVR_Right_Button_Y", "onAirVR Controller (R) B"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RGrip, LOCTEXT("AirVR_Right_Grip", "onAirVR Controller (R) Grip"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RGripAxis, LOCTEXT("AirVR_Right_Grip_Axis", "onAirVR Controller (R) Grip Axis"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RTrigger, LOCTEXT("AirVR_Right_Trigger", "onAirVR Controller (R) Trigger"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RTriggerAxis, LOCTEXT("AirVR_Right_Trigger_Axis", "onAirVR Controller (R) Trigger Axis"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RThumbstickX, LOCTEXT("AirVR_Right_Thumbstick_X", "onAirVR Controller (R) Thumbstick X"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RThumbstickY, LOCTEXT("AirVR_Right_Thumbstick_Y", "onAirVR Controller (R) Thumbstick Y"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RThumbstick, LOCTEXT("AirVR_Right_Thumbstick", "onAirVR Controller (R) Thumbstick"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RThumbstickUp, LOCTEXT("AirVR_Right_Thumbstick_Up", "onAirVR Controller (R) Thumbstick Up"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RThumbstickDown, LOCTEXT("AirVR_Right_Thumbstick_Down", "onAirVR Controller (R) Thumbstick Down"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RThumbstickLeft, LOCTEXT("AirVR_Right_Thumbstick_Left", "onAirVR Controller (R) Thumbstick Left"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::RThumbstickRight, LOCTEXT("AirVR_Right_Thumbstick_Right", "onAirVR Controller (R) Thumbstick Right"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadClick, LOCTEXT("AirVR_Touchpad_Click", "onAirVR Touchpad"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadTouch, LOCTEXT("AirVR_Touchpad_Touch", "onAirVR Touchpad CapTouch"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadX, LOCTEXT("AirVR_Touchpad_X", "onAirVR Touchpad X"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadY, LOCTEXT("AirVR_Touchpad_Y", "onAirVR Touchpad Y"), FKeyDetails::GamepadKey | FKeyDetails::FloatAxis, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadUp, LOCTEXT("AirVR_Touchpad_Up", "onAirVR Touchpad Up"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadDown, LOCTEXT("AirVR_Touchpad_Down", "onAirVR Touchpad Down"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadLeft, LOCTEXT("AirVR_Touchpad_Left", "onAirVR Touchpad Left"), FKeyDetails::GamepadKey, "onAirVR"));
+    EKeys::AddKey(FKeyDetails(FAirVRInputKey::TouchpadRight, LOCTEXT("AirVR_Touchpad_Right", "onAirVR Touchpad Right"), FKeyDetails::GamepadKey, "onAirVR"));
 
     IModularFeatures::Get().RegisterModularFeature(GetModularFeatureName(), this);
 }

@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -12,7 +12,7 @@
 
 #include "Misc/Base64.h"
 #include "Windows/AllowWindowsPlatformTypes.h"
-#include "onairvr_server.h"
+#include "ocs_server.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 
 static const char* KeyType              = "Type";
@@ -32,12 +32,14 @@ static const char* NameDeactivated      = "Deactivated";
 static const char* NameDestroyed        = "Destroyed";
 static const char* NameShowCopyright    = "ShowCopyright";
 
-static const char* FromMediaStream      = "MediaStream";
-static const char* NameInitialized      = "Initialized";
-static const char* NameStarted          = "Started";
-static const char* NameEncodeVideoFrame = "EncodeVideoFrame";
-static const char* NameStopped          = "Stopped";
-static const char* NameCleanedUp        = "CleanedUp";
+static const char* FromMediaStream          = "MediaStream";
+static const char* NameInitialized          = "Initialized";
+static const char* NameStarted              = "Started";
+static const char* NameEncodeVideoFrame     = "EncodeVideoFrame";
+static const char* NameStopped              = "Stopped";
+static const char* NameCleanedUp            = "CleanedUp";
+static const char* NameSetCameraProjection  = "SetCameraProjection";
+static const char* KeyCameraProjection      = "CameraProjection";
 
 static const char* FromInputStream                      = "InputStream";
 static const char* NameRemoteInputDeviceRegistered      = "RemoteInputDeviceRegistered";
@@ -59,7 +61,7 @@ void FAirVREventDispatcher::DispatchMessages()
 {
     int SrcPlayerID = -1;
     const char* Message = nullptr;
-    while (onairvr_CheckMessageQueue(SrcPlayerID, &Message)) {
+    while (ocs_CheckMessageQueue(SrcPlayerID, &Message)) {
         TSharedPtr<FJsonObject> Parsed;
         TSharedRef<TJsonReader<TCHAR>> Reader = TJsonReaderFactory<TCHAR>::Create(Message);
         if (FJsonSerializer::Deserialize<TCHAR>(Reader, Parsed) && Parsed.IsValid()) {
@@ -83,25 +85,9 @@ void FAirVREventDispatcher::DispatchMessages()
                 }
             }
         }
-        onairvr_RemoveFirstMessage();
+        ocs_RemoveFirstMessage();
     }
 }
-
-//uint32 FAirVREventDispatcher::Base64DataLength(FString& Data) const
-//{
-//    check(Data.Len() % 4 == 0);
-//    return 3 * Data.Len() / 4;
-//}
-//
-//uint32 FAirVREventDispatcher::DecodeBase64(FString& Encoded, uint8* Decoded, uint32 Length) const
-//{
-//    FTCHARToUTF8 EncodedUTF8(*Encoded);
-//    uint32 Pad = 0;
-//    if (FBase64::Decode(EncodedUTF8.Get(), Length, Decoded, Pad)) {
-//        return Length - Pad;
-//    }
-//    return 0;
-//}
 
 void FAirVREventDispatcher::DispatchSessionMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message)
 {
@@ -148,6 +134,19 @@ void FAirVREventDispatcher::DispatchMediaStreamMessage(int PlayerID, const TShar
     }
     else if (Message->GetStringField(KeyName).Equals(NameCleanedUp)) {
         NotifyMediaStreamCleanedUp(PlayerID);
+    }
+    else if (Message->GetStringField(KeyName).Equals(NameSetCameraProjection)) {
+        check(Message->HasField(KeyCameraProjection));
+
+        auto CameraProjection = Message->GetArrayField(KeyCameraProjection);
+        check(CameraProjection.Num() == 4);
+
+        float Projection[4];
+        for (int i = 0; i < 4; i++) {
+            Projection[i] = CameraProjection[i].Get()->AsNumber();
+        }
+
+        NotifyMediaStreamSetCameraProjection(PlayerID, Projection);
     }
 }
 
@@ -247,6 +246,13 @@ void FAirVREventDispatcher::NotifyMediaStreamCleanedUp(int PlayerID) const
 {
     for (auto Listener : Listeners) {
         Listener->AirVREventMediaStreamCleanedUp(PlayerID);
+    }
+}
+
+void FAirVREventDispatcher::NotifyMediaStreamSetCameraProjection(int PlayerID, const float* Projection) const 
+{
+    for (auto Listener : Listeners) {
+        Listener->AirVREventMediaStreamSetCameraProjection(PlayerID, Projection);
     }
 }
 

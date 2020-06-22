@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -61,7 +61,6 @@ public:
     bool GetConfig(int32 PlayerControllerID, class UAirVRClientConfig*& Config);
     void GetOrientationAndPosition(int32 PlayerControllerID, FQuat& Orientation, FVector& Position) const;
     void ResetOrientationAndPosition(int32 PlayerControllerID);
-    void AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps);
     void Disconnect(int32 PlayerControllerID);
 
     bool IsInputDeviceAvailable(int32 PlayerControllerID, FAirVRInputDeviceType Device) const;
@@ -78,7 +77,9 @@ public:
     bool IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device) const;
     void EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier);
     void DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device);
-    void FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    void EnableRaycastHit(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bEnable);
+    void UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    void UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient);
 
     //for onAirVRServerInput
     void GetCurrentPlayers(TArray<int32>& Result);
@@ -179,9 +180,12 @@ private:
     void StartupAirVRServer(FWorldContext& WorldContext);
     void ShutdownAirVRServer();
     void AddAudioSendToMasterSubmix(FWorldContext& WorldContext);
+    void RemoveAudioSendFromMasterSubmix(FWorldContext& WorldContext);
     bool IsTrackedDevice(FAirVRInputDeviceType Device) const;
     const char* ParseInputDeviceName(FAirVRInputDeviceType Device) const;
     uint8 ParseRaycastResultFeedbackControlID(FAirVRInputDeviceType Device) const;
+    uint8 ParseRenderOnClientControlID(FAirVRInputDeviceType Device) const;
+    float GetAdaptiveFrameRate() const;
         
 private:
     void* AirVRServerDllHandle;
@@ -198,6 +202,8 @@ private:
     FUELocalPlayerRenderContext LocalPlayerRenderContext;
 
     FVector2D MaxRenderTargetSize;
+    bool bUserUseFixedFrameRate;
+    float UserFixedFrameRate;
 
     FCriticalSection AudioCritSect;
     class USubmixEffectSubmixAirVRServerAudioSendPreset* MasterAudioSendEffectSubmixPreset;

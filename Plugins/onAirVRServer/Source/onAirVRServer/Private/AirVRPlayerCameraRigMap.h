@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -33,17 +33,14 @@ public:
 
         FIntRect GetRenderViewport(EStereoscopicPass StereoPass) const
         {
-            if (bIsStereoscopic) {
-                switch (StereoPass) {
-                    case eSSP_LEFT_EYE:
-                        return FIntRect(RenderViewport.Min, FIntPoint(RenderViewport.Max.X - RenderViewport.Width() / 2, RenderViewport.Max.Y));
-                    case eSSP_RIGHT_EYE:
-                        return FIntRect(FIntPoint(RenderViewport.Min.X + RenderViewport.Width() / 2, RenderViewport.Min.Y), RenderViewport.Max);
-                    default:
-                        break;
-                }
+            switch (StereoPass) {
+                case eSSP_LEFT_EYE:
+                    return FIntRect(RenderViewport.Min, FIntPoint(RenderViewport.Max.X - RenderViewport.Width() / 2, RenderViewport.Max.Y));
+                case eSSP_RIGHT_EYE:
+                    return FIntRect(FIntPoint(RenderViewport.Min.X + RenderViewport.Width() / 2, RenderViewport.Min.Y), RenderViewport.Max);
+                default:
+                    return RenderViewport;
             }
-            return RenderViewport;
         }
 
         bool ShouldRender() const
@@ -119,7 +116,7 @@ public:
     void Reset();
 
     void OnStartGameFrame(FWorldContext& WorldContext);
-    void UpdateCameraRigs();
+    void UpdateCameraRigs(FWorldContext& WorldContext);
     void OnEndGameFrame(FWorldContext& WorldContext, FVector2D& MaxRenderTargetSize);
 
 private:

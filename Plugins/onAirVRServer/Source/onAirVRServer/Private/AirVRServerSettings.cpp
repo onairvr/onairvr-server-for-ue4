@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -15,12 +15,10 @@
 
 UAirVRServerSettings::UAirVRServerSettings()
     : LicenseFilePath(TEXT("onairvr.license")),
-      MaxClientCount(1),
       PortSTAP(9090),
-      VideoBitrate(24000000),
-      MaxFrameRate(72.0f),
-      DefaultFrameRate(30.0f),
-      BroadcastAudioToAllPlayers(true),
+      AdaptiveFrameRate(true),
+      MinFrameRate(10.0f),
+      DisableAudio(false),
       PortAMP(0),
       LoopbackOnlyForSTAP(false),
       UserData(TEXT("")),
@@ -61,10 +59,6 @@ void UAirVRServerSettings::ParseCommandLineArgs()
             }
             else if (Name.Equals(TEXT("onairvr_license"))) {
                 LicenseFilePath = Value;
-            }
-            else if (Name.Equals(TEXT("onairvr_video_bitrate"))) {
-                int32 parsed = 0;
-                VideoBitrate = FDefaultValueHelper::ParseInt(Value, parsed) && parsed > 0 ? parsed : VideoBitrate;
             }
             else if (Name.Equals(TEXT("onairvr_user_data"))) {
                 UserData = FGenericPlatformHttp::UrlDecode(Value);

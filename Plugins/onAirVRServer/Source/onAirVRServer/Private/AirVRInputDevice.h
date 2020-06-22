@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -47,9 +47,9 @@ private:
         float Val[3];
 
     public:
-        ONAIRVR_VECTOR3D Value() const { return ONAIRVR_VECTOR3D(Val[2], Val[0], Val[1]); }
+        OCS_VECTOR3D Value() const { return OCS_VECTOR3D(Val[2], Val[0], Val[1]); }
 
-        void SetValue(const ONAIRVR_VECTOR3D& InValue) 
+        void SetValue(const OCS_VECTOR3D& InValue) 
         {
             Val[0] = InValue.y;
             Val[1] = InValue.z;
@@ -62,7 +62,7 @@ private:
         virtual void PollInput(FAirVRInputDevice* Device, FAirVRInputStream* InputStream, uint8 Id) override
         {
             if (InputStream->GetInput(Device, Id, Val, 3) == false) {
-                SetValue(ONAIRVR_VECTOR3D());
+                SetValue(OCS_VECTOR3D());
             }
         }
     };
@@ -79,9 +79,9 @@ private:
         float Val[2];
 
     public:
-        ONAIRVR_VECTOR2D Value() const { return ONAIRVR_VECTOR2D(Val[0], Val[1]); }
+        OCS_VECTOR2D Value() const { return OCS_VECTOR2D(Val[0], Val[1]); }
 
-        void SetValue(const ONAIRVR_VECTOR2D& InValue)
+        void SetValue(const OCS_VECTOR2D& InValue)
         {
             Val[0] = InValue.x;
             Val[1] = InValue.y;
@@ -93,7 +93,7 @@ private:
         virtual void PollInput(FAirVRInputDevice* Device, FAirVRInputStream* InputStream, uint8 Id) override
         {
             if (InputStream->GetInput(Device, Id, Val, 2) == false) {
-                SetValue(ONAIRVR_VECTOR2D());
+                SetValue(OCS_VECTOR2D());
             }
         }
     };
@@ -154,9 +154,9 @@ private:
 
         virtual void PollInput(FAirVRInputDevice* Device, FAirVRInputStream* InputStream, uint8 Id) override
         {
-            float Val = 0.0f;
-            if (InputStream->GetInput(Device, Id, &Val, 1)) {
-                SetValue(Val);
+            float InputVal = 0.0f;
+            if (InputStream->GetInput(Device, Id, &InputVal, 1)) {
+                SetValue(InputVal);
             }
             else {
                 SetValue(0.0f);
@@ -177,9 +177,9 @@ private:
         float Val[4];
 
     public:
-        ONAIRVR_QUATERNION Value() const { return ONAIRVR_QUATERNION(Val[2], Val[0], Val[1], Val[3]); }
+        OCS_QUATERNION Value() const { return OCS_QUATERNION(Val[2], Val[0], Val[1], Val[3]); }
 
-        void SetValue(const ONAIRVR_QUATERNION& InValue)
+        void SetValue(const OCS_QUATERNION& InValue)
         {
             Val[0] = InValue.y;
             Val[1] = InValue.z;
@@ -193,7 +193,7 @@ private:
         virtual void PollInput(FAirVRInputDevice* Device, FAirVRInputStream* InputStream, uint8 Id) override
         {
             if (InputStream->GetInput(Device, Id, Val, 4) == false) {
-                SetValue(ONAIRVR_QUATERNION());
+                SetValue(OCS_QUATERNION());
             }
         }
     };
@@ -203,7 +203,6 @@ private:
     public:
         Transform()
         {
-			TimeStamp_ = 0.0;
             for (int i = 0; i < 6; i++) {
                 Value[i] = 0.0f;
             }
@@ -211,17 +210,14 @@ private:
         }
 
     private:
-		double TimeStamp_;
         float Value[7];
 
     public:
-		double TimeStamp() const				{ return TimeStamp_; }
-        ONAIRVR_VECTOR3D Position() const       { return ONAIRVR_VECTOR3D(Value[2], Value[0], Value[1]); }
-        ONAIRVR_QUATERNION Orientation() const  { return ONAIRVR_QUATERNION(Value[5], Value[3], Value[4], Value[6]); }
+        OCS_VECTOR3D Position() const       { return OCS_VECTOR3D(Value[2], Value[0], Value[1]); }
+        OCS_QUATERNION Orientation() const  { return OCS_QUATERNION(Value[5], Value[3], Value[4], Value[6]); }
 
-        void SetValue(double TimeStamp, const ONAIRVR_VECTOR3D& Position, const ONAIRVR_QUATERNION& Orientation)
+        void SetValue(const OCS_VECTOR3D& Position, const OCS_QUATERNION& Orientation)
         {
-			TimeStamp_ = TimeStamp;
             Value[0] = Position.y;
             Value[1] = Position.z;
             Value[2] = Position.x;
@@ -236,8 +232,8 @@ private:
 
         virtual void PollInput(FAirVRInputDevice* Device, FAirVRInputStream* InputStream, uint8 Id) override
         {
-            if (InputStream->GetInputWithTimeStamp(Device, Id, Value, 7, &TimeStamp_) == false) {
-                SetValue(0.0, ONAIRVR_VECTOR3D(), ONAIRVR_QUATERNION());
+            if (InputStream->GetInput(Device, Id, Value, 7) == false) {
+                SetValue(OCS_VECTOR3D(), OCS_QUATERNION());
             }
         }
     };
@@ -254,10 +250,10 @@ private:
         float Value[3];
 
     public:
-        ONAIRVR_VECTOR2D Position() const   { return ONAIRVR_VECTOR2D(Value[0], Value[1]); }
-        bool IsTouched() const              { return Value[2] != 0.0f; }
+        OCS_VECTOR2D Position() const   { return OCS_VECTOR2D(Value[0], Value[1]); }
+        bool IsTouched() const          { return Value[2] != 0.0f; }
 
-        void SetValue(const ONAIRVR_VECTOR2D& Position, bool bTouch)
+        void SetValue(const OCS_VECTOR2D& Position, bool bTouch)
         {
             Value[0] = Position.x;
             Value[1] = Position.y;
@@ -270,7 +266,7 @@ private:
         virtual void PollInput(FAirVRInputDevice* Device, FAirVRInputStream* InputStream, uint8 Id) override
         {
             if (InputStream->GetInput(Device, Id, Value, 3) == false) {
-                SetValue(ONAIRVR_VECTOR2D(), false);
+                SetValue(OCS_VECTOR2D(), false);
             }
         }
     };
@@ -290,15 +286,14 @@ public:
     void AddExtControlAxis2D(uint8 ControlID);
     void AddExtControlButton(uint8 ControlID);
 
-    void SetExtControlAxis2D(uint8 ControlID, const ONAIRVR_VECTOR2D& Value);
+    void SetExtControlAxis2D(uint8 ControlID, const OCS_VECTOR2D& Value);
     void SetExtControlButton(uint8 ControlID, float Value);
 
-    void GetTouch(uint8 ControlID, ONAIRVR_VECTOR2D* Position, bool* bTouch);
-	void GetTransform(uint8 ControlID, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation);
-    void GetTransform(uint8 ControlID, double& TimeStamp, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation);
-    ONAIRVR_QUATERNION GetOrientation(uint8 ControlID);
-    ONAIRVR_VECTOR3D GetAxis3D(uint8 ControlID);
-    ONAIRVR_VECTOR2D GetAxis2D(uint8 ControlID);
+    void GetTouch(uint8 ControlID, OCS_VECTOR2D* Position, bool* bTouch);
+	void GetTransform(uint8 ControlID, OCS_VECTOR3D* Position, OCS_QUATERNION* Orientation);
+    OCS_QUATERNION GetOrientation(uint8 ControlID);
+    OCS_VECTOR3D GetAxis3D(uint8 ControlID);
+    OCS_VECTOR2D GetAxis2D(uint8 ControlID);
     float GetAxis(uint8 ControlID);
     float GetButtonRaw(uint8 ControlID);
     bool GetButton(uint8 ControlID);
@@ -307,7 +302,7 @@ public:
 
 public:
     // implements FAirVRInputReceiver
-    virtual void PollInputsPerFrame(class FAirVRInputStream* InputStream) override;
+    virtual void PollInputsPerFrame(FWorldContext& WorldContext, class FAirVRInputStream* InputStream) override;
 
 protected:
     virtual void UpdateExtendedControls() {}

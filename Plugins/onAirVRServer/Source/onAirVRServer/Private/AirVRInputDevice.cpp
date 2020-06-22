@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -69,7 +69,7 @@ void FAirVRInputDevice::AddExtControlButton(uint8 ControlID)
     ExtControls.Add(ControlID, new Button());
 }
 
-void FAirVRInputDevice::SetExtControlAxis2D(uint8 ControlID, const ONAIRVR_VECTOR2D& Value)
+void FAirVRInputDevice::SetExtControlAxis2D(uint8 ControlID, const OCS_VECTOR2D& Value)
 {
     check(ExtControls.Contains(ControlID));
     ExtControls[ControlID]->AsAxis2D()->SetValue(Value);
@@ -81,7 +81,7 @@ void FAirVRInputDevice::SetExtControlButton(uint8 ControlID, float Value)
     ExtControls[ControlID]->AsButton()->SetValue(Value);
 }
 
-void FAirVRInputDevice::GetTouch(uint8 ControlID, ONAIRVR_VECTOR2D* Position, bool* bTouch)
+void FAirVRInputDevice::GetTouch(uint8 ControlID, OCS_VECTOR2D* Position, bool* bTouch)
 {
     Control* ControlObject = FindControl(ControlID);
     if (ControlObject) {
@@ -89,12 +89,12 @@ void FAirVRInputDevice::GetTouch(uint8 ControlID, ONAIRVR_VECTOR2D* Position, bo
         *bTouch = ControlObject->AsTouch()->IsTouched();
     }
     else {
-        *Position = ONAIRVR_VECTOR2D();
+        *Position = OCS_VECTOR2D();
         *bTouch = false;
     }
 }
 
-void FAirVRInputDevice::GetTransform(uint8 ControlID, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation)
+void FAirVRInputDevice::GetTransform(uint8 ControlID, OCS_VECTOR3D* Position, OCS_QUATERNION* Orientation)
 {
 	Control* ControlObject = FindControl(ControlID);
 	if (ControlObject) {
@@ -102,42 +102,27 @@ void FAirVRInputDevice::GetTransform(uint8 ControlID, ONAIRVR_VECTOR3D* Position
 		*Orientation = ControlObject->AsTransform()->Orientation();
 	}
 	else {
-		*Position = ONAIRVR_VECTOR3D();
-		*Orientation = ONAIRVR_QUATERNION();
+		*Position = OCS_VECTOR3D();
+		*Orientation = OCS_QUATERNION();
 	}
 }
 
-void FAirVRInputDevice::GetTransform(uint8 ControlID, double& TimeStamp, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation)
+OCS_QUATERNION FAirVRInputDevice::GetOrientation(uint8 ControlID)
 {
     Control* ControlObject = FindControl(ControlID);
-    if (ControlObject) {
-		TimeStamp = ControlObject->AsTransform()->TimeStamp();
-        *Position = ControlObject->AsTransform()->Position();
-        *Orientation = ControlObject->AsTransform()->Orientation();
-    }
-    else {
-		TimeStamp = 0.0;
-        *Position = ONAIRVR_VECTOR3D();
-        *Orientation = ONAIRVR_QUATERNION();
-    }
+    return ControlObject ? ControlObject->AsOrientation()->Value() : OCS_QUATERNION();
 }
 
-ONAIRVR_QUATERNION FAirVRInputDevice::GetOrientation(uint8 ControlID)
+OCS_VECTOR3D FAirVRInputDevice::GetAxis3D(uint8 ControlID)
 {
     Control* ControlObject = FindControl(ControlID);
-    return ControlObject ? ControlObject->AsOrientation()->Value() : ONAIRVR_QUATERNION();
+    return ControlObject ? ControlObject->AsAxis3D()->Value() : OCS_VECTOR3D();
 }
 
-ONAIRVR_VECTOR3D FAirVRInputDevice::GetAxis3D(uint8 ControlID)
+OCS_VECTOR2D FAirVRInputDevice::GetAxis2D(uint8 ControlID)
 {
     Control* ControlObject = FindControl(ControlID);
-    return ControlObject ? ControlObject->AsAxis3D()->Value() : ONAIRVR_VECTOR3D();
-}
-
-ONAIRVR_VECTOR2D FAirVRInputDevice::GetAxis2D(uint8 ControlID)
-{
-    Control* ControlObject = FindControl(ControlID);
-    return ControlObject ? ControlObject->AsAxis2D()->Value() : ONAIRVR_VECTOR2D();
+    return ControlObject ? ControlObject->AsAxis2D()->Value() : OCS_VECTOR2D();
 }
 
 float FAirVRInputDevice::GetAxis(uint8 ControlID)
@@ -169,7 +154,7 @@ bool FAirVRInputDevice::GetButtonUp(uint8 ControlID)
     return ControlObject ? ControlObject->AsButton()->IsUp() : false;
 }
 
-void FAirVRInputDevice::PollInputsPerFrame(FAirVRInputStream* InputStream)
+void FAirVRInputDevice::PollInputsPerFrame(FWorldContext& WorldContext, FAirVRInputStream* InputStream)
 {
     for (auto& Control : Controls) {
         Control.Value->PollInput(this, InputStream, Control.Key);

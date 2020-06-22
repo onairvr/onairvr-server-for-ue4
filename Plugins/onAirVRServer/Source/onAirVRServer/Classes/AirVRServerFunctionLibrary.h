@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -16,11 +16,9 @@ UENUM(BlueprintType)
 enum class FAirVRInputDeviceType : uint8 
 {
     HeadTracker,
-    Touchpad,
-    Gamepad,
-    TrackedController,
-    LeftController,
-    RightController
+    LeftHandTracker,
+    RightHandTracker,
+    Controller
 };
 
 UENUM(BlueprintType)
@@ -53,9 +51,6 @@ public:
     static void ResetOrientationAndPosition(int32 PlayerControllerID);
 
     UFUNCTION(BlueprintCallable, Category = "onAirVR")
-    static void AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps);
-
-    UFUNCTION(BlueprintCallable, Category = "onAirVR")
     static void Disconnect(int32 PlayerControllerID);
 
     UFUNCTION(BlueprintCallable, Category = "onAirVR")
@@ -79,7 +74,9 @@ public:
     static bool IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device);
     static void EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier);
     static void DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device);
-    static void FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    static void EnableRaycastHit(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bEnable);
+    static void UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    static void UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient);
 
     // internal interfaces for onAirVRServerInput
     static void GetCurrentPlayers(TArray<int32>& Result);

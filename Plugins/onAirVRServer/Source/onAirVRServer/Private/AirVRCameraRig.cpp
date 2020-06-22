@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -13,7 +13,13 @@
 #include "AirVRServerHMD.h"
 
 FAirVRCameraRig::FAirVRCameraRig(class FAirVREventDispatcher* InEventDispatcher)
-    : PlayerID(-1), EventDispatcher(InEventDispatcher), LastTrackingTimeStamp(0.0), InputStream(this), bIsActivated(false), bEncodeRequested(false)
+    : PlayerID(-1), 
+      EventDispatcher(InEventDispatcher), 
+      LastTrackingTimeStamp(0.0), 
+      InputStream(this), 
+      bIsActivated(false), 
+      bEncodeRequested(false),
+      bStereoscopic(false)
 {
     TrackingModel = FAirVRTrackingModel::CreateTrackingModel(FAirVRTrackingModelType::Head, this);
     EventDispatcher->AddListener(this);
@@ -42,12 +48,17 @@ void FAirVRCameraRig::UpdateExternalTrackerLocationAndRotation(const FVector& Lo
     TrackingModel->UpdateExternalTrackerLocationAndRotation(Location, Rotation);
 }
 
+FMatrix FAirVRCameraRig::GetCameraProjectionMatrix() const 
+{
+    return GetLeftEyeProjectionMatrix();
+}
+
 FMatrix FAirVRCameraRig::GetLeftEyeProjectionMatrix() const
 {
-    return MakeProjectionMatrix(LeftEyeCameraNearPlane[0] * GNearClippingPlane,
-                                LeftEyeCameraNearPlane[1] * GNearClippingPlane,
-                                LeftEyeCameraNearPlane[2] * GNearClippingPlane,
-                                LeftEyeCameraNearPlane[3] * GNearClippingPlane,
+    return MakeProjectionMatrix(CameraProjection[0] * GNearClippingPlane,
+                                CameraProjection[1] * GNearClippingPlane,
+                                CameraProjection[2] * GNearClippingPlane,
+                                CameraProjection[3] * GNearClippingPlane,
                                 GNearClippingPlane);
 }
 
@@ -106,34 +117,35 @@ void FAirVRCameraRig::UpdateViewInfo(const FIntRect& ScreenViewport, bool& OutSh
         OutShouldEncode = bEncodeRequested;
         bEncodeRequested = false;
 
-        OutIsStereoscopic = true;
+        OutIsStereoscopic = bStereoscopic;
     }
     else {
         VideoWidth = ScreenViewport.Width();
         VideoHeight = ScreenViewport.Height();
 
         float AspectRatio = ScreenViewport.Width() > 0 && ScreenViewport.Height() > 0 ? (float)VideoWidth / VideoHeight : 1.0f;
-        LeftEyeCameraNearPlane[0] = 1.0f * AspectRatio;
-        LeftEyeCameraNearPlane[1] = 1.0f;
-        LeftEyeCameraNearPlane[2] = -1.0f * AspectRatio;
-        LeftEyeCameraNearPlane[3] = -1.0f;
+        CameraProjection[0] = 1.0f * AspectRatio;
+        CameraProjection[1] = 1.0f;
+        CameraProjection[2] = -1.0f * AspectRatio;
+        CameraProjection[3] = -1.0f;
 
         OutShouldEncode = false;
         OutIsStereoscopic = false;
     }
 }
 
-void FAirVRCameraRig::BindPlayer(int InPlayerID, const ONAIRVR_CLIENT_CONFIG& Config)
+void FAirVRCameraRig::BindPlayer(int InPlayerID, const OCS_CLIENT_CONFIG& Config)
 {
     PlayerID = InPlayerID;
 
+    bStereoscopic = Config.clientType == OCS_CLIENT_STEREOSCOPIC;
     VideoWidth = Config.videoWidth;
     VideoHeight = Config.videoHeight;
     for (int i = 0; i < 4; i++) {
-        LeftEyeCameraNearPlane[i] = Config.leftEyeCameraNearPlane[i];
+        CameraProjection[i] = Config.cameraProjection[i];
     }
 
-	LastTrackingTimeStamp = 0.0;
+	LastTrackingTimeStamp = 0;
 }
 
 void FAirVRCameraRig::UnbindPlayer()
@@ -141,17 +153,22 @@ void FAirVRCameraRig::UnbindPlayer()
     PlayerID = -1;
 }
 
-void FAirVRCameraRig::Update()
+void FAirVRCameraRig::Update(FWorldContext& WorldContext)
 {
     if (IsBound()) {
-        InputStream.Update();
+        InputStream.Update(WorldContext);
 
-        ONAIRVR_CLIENT_CONFIG Config;
-        onairvr_GetConfig(PlayerID, &Config);
+        OCS_CLIENT_CONFIG Config;
+        ocs_GetConfig(PlayerID, &Config);
 
-        ONAIRVR_VECTOR3D Position;
-        ONAIRVR_QUATERNION Orientation;
-        InputStream.GetTransform(ONAIRVR_INPUT_DEVICE_HEADTRACKER, (uint8)AirVRHeadTrackerKey::Transform, LastTrackingTimeStamp, &Position, &Orientation);
+        LastTrackingTimeStamp = ocs_GetInputRecvTimestamp(PlayerID);
+
+        OCS_VECTOR3D Position;
+        OCS_QUATERNION Orientation;
+        InputStream.GetTransform(ONAIRVR_INPUT_DEVICE_HEADTRACKER, 
+                                 (uint8)AirVRHeadTrackerKey::Transform,  
+                                 &Position, 
+                                 &Orientation);
 
         TrackingModel->UpdateEyePose(Config, Position, Orientation);
     }
@@ -169,25 +186,27 @@ void FAirVRCameraRig::Reset()
 void FAirVRCameraRig::EnableNetworkTimeWarp(bool bEnable)
 {
     if (IsBound()) {
-        onairvr_EnableNetworkTimeWarp(PlayerID, bEnable);
+        ocs_EnableNetworkTimeWarp(PlayerID, bEnable);
     }
 }
 
 void FAirVRCameraRig::AirVRTrackingModelContextRecenterCameraRigPose()
 {
     if (IsBound()) {
-        onairvr_RecenterPose(PlayerID);
+        ocs_RecenterPose(PlayerID);
     }
 }
 
 void FAirVRCameraRig::AirVREventMediaStreamInitialized(int InPlayerID)
 {
     if (PlayerID == InPlayerID) {
+        int InRenderPlayerID = PlayerID;
+
         ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-            onairvr_InitStreams_RenderThread,
-            int, PlayerID, PlayerID,
+            ocs_InitStreams_RenderThread,
+            int, InPlayerID, InPlayerID,
             {
-                onairvr_InitStreams_RenderThread(PlayerID);
+                ocs_InitStreams_RenderThread(InPlayerID);
             }
         );
 
@@ -225,10 +244,10 @@ void FAirVRCameraRig::AirVREventMediaStreamStopped(int InPlayerID)
         TrackingModel->StopTracking();
 
         ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-            onairvr_ResetStreams_RenderThread,
-            int, PlayerID, PlayerID,
+            ocs_ResetStreams_RenderThread,
+            int, InPlayerID, InPlayerID,
             {
-                onairvr_ResetStreams_RenderThread(PlayerID);
+                ocs_ResetStreams_RenderThread(InPlayerID);
             }
         );
         FlushRenderingCommands();
@@ -243,13 +262,22 @@ void FAirVRCameraRig::AirVREventMediaStreamCleanedUp(int InPlayerID)
         InputStream.Cleanup();
 
         ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-            onairvr_CleanupStreams_RenderThread,
-            int, PlayerID, PlayerID,
+            ocs_CleanupStreams_RenderThread,
+            int, InPlayerID, InPlayerID,
             {
-                onairvr_CleanupStreams_RenderThread(PlayerID);
+                ocs_CleanupStreams_RenderThread(InPlayerID);
             }
         );
         FlushRenderingCommands();
+    }
+}
+
+void FAirVRCameraRig::AirVREventMediaStreamSetCameraProjection(int InPlayerID, const float* Projection) 
+{
+    if (PlayerID == InPlayerID) {
+        for (int i = 0; i < 4; i++) {
+            CameraProjection[i] = Projection[i];
+        }
     }
 }
 

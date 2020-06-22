@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -27,10 +27,11 @@ public:
     void SetTrackingModel(FAirVRTrackingModelType TrackingModelType);
     void UpdateExternalTrackerLocationAndRotation(const FVector& Location, const FQuat& Rotation);
 
+    FMatrix GetCameraProjectionMatrix() const;
     FMatrix GetLeftEyeProjectionMatrix() const;
     FMatrix GetRightEyeProjectionMatrix() const;
     
-	double GetTrackingTimeStamp() const { return LastTrackingTimeStamp; }
+	int64 GetTrackingTimeStamp() const { return LastTrackingTimeStamp; }
     FQuat GetHeadOrientation(bool bInHMDSpace) const;
     FVector GetCenterEyePosition() const;
     FVector GetLeftEyePosition() const;
@@ -44,9 +45,9 @@ public:
     int GetVideoHeight() const              { return VideoHeight; }
 
     void UpdateViewInfo(const FIntRect& ScreenViewport, bool& OutShouldEncode, bool& OutIsStereoscopic);
-    void BindPlayer(int InPlayerID, const ONAIRVR_CLIENT_CONFIG& Config);
+    void BindPlayer(int InPlayerID, const OCS_CLIENT_CONFIG& Config);
     void UnbindPlayer();
-    void Update();
+    void Update(FWorldContext& WorldContext);
     void Reset();
 
     void EnableNetworkTimeWarp(bool bEnable);
@@ -61,6 +62,7 @@ public:
     virtual void AirVREventMediaStreamEncodeVideoFrame(int InPlayerID) override;
     virtual void AirVREventMediaStreamStopped(int InPlayerID) override;
     virtual void AirVREventMediaStreamCleanedUp(int InPlayerID) override;
+    virtual void AirVREventMediaStreamSetCameraProjection(int InPlayerID, const float* Projection) override;
     virtual void AirVREventInputStreamRemoteInputDeviceRegistered(int InPlayerID, const FString& DeviceName, uint8 DeviceID) override;
     virtual void AirVREventInputStreamRemoteInputDeviceUnregistered(int InPlayerID, uint8 DeviceID) override;
 
@@ -71,12 +73,13 @@ private:
     int PlayerID;
     class FAirVREventDispatcher* EventDispatcher;
     class FAirVRTrackingModel* TrackingModel;
-	double LastTrackingTimeStamp;
+	int64 LastTrackingTimeStamp;
     FAirVRInputStream InputStream;
     bool bIsActivated;
     bool bEncodeRequested;
+    bool bStereoscopic;
     int VideoWidth;
     int VideoHeight;
     FIntPoint ViewportMin;
-    float LeftEyeCameraNearPlane[4];
+    float CameraProjection[4];
 };

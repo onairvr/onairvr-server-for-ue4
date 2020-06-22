@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -26,6 +26,7 @@ public:
     virtual void AirVREventMediaStreamEncodeVideoFrame(int PlayerID) {}
     virtual void AirVREventMediaStreamStopped(int PlayerID) {}
     virtual void AirVREventMediaStreamCleanedUp(int PlayerID) {}
+    virtual void AirVREventMediaStreamSetCameraProjection(int PlayerID, const float* Projection) {}
     virtual void AirVREventInputStreamRemoteInputDeviceRegistered(int PlayerID, const FString& DeviceName, uint8 DeviceID) {}
     virtual void AirVREventInputStreamRemoteInputDeviceUnregistered(int PlayerID, uint8 DeviceID) {}
 };
@@ -55,6 +56,7 @@ private:
     void NotifyMediaStreamEncodeVideoFrame(int PlayerID) const;
     void NotifyMediaStreamStopped(int PlayerID) const;
     void NotifyMediaStreamCleanedUp(int PlayerID) const;
+    void NotifyMediaStreamSetCameraProjection(int PlayerID, const float* Projection) const;
     void NotifyInputStreamRemoteInputDeviceRegistered(int PlayerID, const FString& DeviceName, uint8 DeviceID) const;
     void NotifyInputStreamRemoteInputDeviceUnregistered(int PlayerID, uint8 DeviceID) const;
 

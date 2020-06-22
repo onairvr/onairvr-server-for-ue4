@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -18,18 +18,18 @@ namespace UnrealBuildTool.Rules
             PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
             PublicIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Public",
-                "onAirVRServer/Classes",
+                Path.Combine(ModuleDirectory, "Public"),
+                Path.Combine(ModuleDirectory, "Classes")
             });
 
             PrivateIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Private",
-                "onAirVRServerInput/Private",
-                "Runtime/Windows/D3D11RHI/Public",
-                "Runtime/Windows/D3D11RHI/Private/Windows",
-                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Renderer/Private")
+                Path.Combine(ModuleDirectory, "Private"),
+                Path.Combine(ModuleDirectory, "../onAirVRServerInput/Private"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Windows/D3D11RHI/Public"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Windows/D3D11RHI/Private/Windows"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Renderer/Private"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/AudioMixer/Private")
             });
-
 
             PrivateDependencyModuleNames.AddRange(new string[] {
                 "Core",
@@ -54,14 +54,14 @@ namespace UnrealBuildTool.Rules
             }
 
             string BinariesPath = Path.Combine(ModuleDirectory, "..", "..", "Binaries", "Win64");
-            string AirVRServerDllName = "onAirVRUnrealServerPlugin.dll";
-            string AirVRServerDllPath = Path.Combine(BinariesPath, AirVRServerDllName);
-            string AirVRServerLibPath = Path.Combine(BinariesPath, "onAirVRUnrealServerPlugin.lib");
+            string OCSDllName = "ocs.dll";
+            string OCSDllPath = Path.Combine(BinariesPath, OCSDllName);
+            string OCSLibPath = Path.Combine(BinariesPath, "ocs.lib");
 
-            PublicAdditionalLibraries.Add(AirVRServerLibPath);
+            PublicAdditionalLibraries.Add(OCSLibPath);
 
-            PublicDelayLoadDLLs.Add(AirVRServerDllName);
-            RuntimeDependencies.Add(AirVRServerDllPath);
+            PublicDelayLoadDLLs.Add(OCSDllName);
+            RuntimeDependencies.Add(OCSDllPath);
         }
     }
 }

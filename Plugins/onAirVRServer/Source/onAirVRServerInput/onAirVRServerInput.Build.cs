@@ -1,11 +1,13 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
 
  ***********************************************************/
+
+using System.IO;
 
 namespace UnrealBuildTool.Rules 
 {
@@ -16,12 +18,12 @@ namespace UnrealBuildTool.Rules
             PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
             PublicIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Public",
-                "onAirVRServer/Classes"
+                Path.Combine(ModuleDirectory, "../onAirVRServer/Public"),
+                Path.Combine(ModuleDirectory, "../onAirVRServer/Classes")
             });
 
             PrivateIncludePaths.AddRange(new string[] {
-                "onAirVRServer/Private",
+                Path.Combine(ModuleDirectory, "../onAirVRServer/Private")
             });
 
             PrivateDependencyModuleNames.AddRange(new string[] {

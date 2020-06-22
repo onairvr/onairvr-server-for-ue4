@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -12,22 +12,18 @@
 
 #include "AirVRCameraRig.h"
 #include "AirVRHeadTrackerInputDevice.h"
-#include "AirVRTouchpadInputDevice.h"
-#include "AirVRGamepadInputDevice.h"
-#include "AirVRTrackedControllerInputDevice.h"
-#include "AirVRLeftControllerInputDevice.h"
-#include "AirVRRightControllerInputDevice.h"
-#include "AirVRDeviceFeedback.h"
+#include "AirVRLeftHandTrackerInputDevice.h"
+#include "AirVRRightHandTrackerInputDevice.h"
+#include "AirVRControllerInputDevice.h"
+#include "AirVRInputDeviceFeedback.h"
 
 FAirVRInputStream::FAirVRInputStream(FAirVRCameraRig* InOwner)
     : Owner(InOwner)
 {
     AddInputDevice(new FAirVRHeadTrackerInputDevice());
-    AddInputDevice(new FAirVRTouchpadInputDevice());
-    AddInputDevice(new FAirVRGamepadInputDevice());
-    AddInputDevice(new FAirVRTrackedControllerInputDevice());
-    AddInputDevice(new FAirVRLeftControllerInputDevice());
-    AddInputDevice(new FAirVRRightControllerInputDevice());
+    AddInputDevice(new FAirVRLeftHandTrackerInputDevice());
+    AddInputDevice(new FAirVRRightHandTrackerInputDevice());
+    AddInputDevice(new FAirVRControllerInputDevice());
 }
 
 FAirVRInputStream::~FAirVRInputStream()
@@ -48,7 +44,7 @@ void FAirVRInputStream::Init()
     check(Owner->IsBound());
 
     for (auto& Feedback : DeviceFeedbacks) {
-        Feedback.Value->OnRegistered(onairvr_RegisterInputSender(Owner->GetPlayerID(), TCHAR_TO_UTF8(*Feedback.Key), Feedback.Value->GetCookieArgs()));
+        Feedback.Value->OnRegistered(ocs_RegisterInputSender(Owner->GetPlayerID(), TCHAR_TO_UTF8(*Feedback.Key), Feedback.Value->GetCookieArgs()));
     }
 
     InputSendTimer.Set(90.0);
@@ -64,7 +60,7 @@ void FAirVRInputStream::Stop()
     check(Owner->IsBound());
     bStreaming = false;
 
-    onairvr_ResetInput(Owner->GetPlayerID());
+    ocs_ResetInput(Owner->GetPlayerID());
 }
 
 void FAirVRInputStream::Cleanup()
@@ -80,26 +76,29 @@ void FAirVRInputStream::Cleanup()
 
     for (auto& Feedback : DeviceFeedbacks) {
         if (Feedback.Value->IsRegistered()) {
-            onairvr_UnregisterInputSender(Owner->GetPlayerID(), Feedback.Value->GetDeviceID());
+            ocs_UnregisterInputSender(Owner->GetPlayerID(), Feedback.Value->GetDeviceID());
             Feedback.Value->OnUnregistered();
         }
     }
 }
 
-void FAirVRInputStream::Update()
+void FAirVRInputStream::Update(FWorldContext& WorldContext)
 {
     for (auto& Device : InputDevices) {
-        Device.Value->PollInputsPerFrame(this);
+        Device.Value->PollInputsPerFrame(WorldContext, this);
     }
 
     InputSendTimer.UpdatePerFrame();
     if (InputSendTimer.Expired()) {
+        int64_t timestamp = 0;
+        ocs_BeginPendInput(Owner->GetPlayerID(), timestamp);
+
         for (auto& Feedback : DeviceFeedbacks) {
             if (Feedback.Value->IsRegistered()) {
-                Feedback.Value->PendInputsPerFrame(this);
+                Feedback.Value->PendInputsPerFrame(WorldContext, this);
             }
         }
-        onairvr_SendPendingInputs(Owner->GetPlayerID());
+        ocs_SendPendingInputs(Owner->GetPlayerID(), timestamp);
     }
 }
 
@@ -135,43 +134,31 @@ void FAirVRInputStream::HandleRemoteInputDeviceUnregistered(uint8 DeviceID)
     }
 }
 
-void FAirVRInputStream::GetTransform(FString DeviceName, uint8 ControlID, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation) const
+void FAirVRInputStream::GetTransform(FString DeviceName, uint8 ControlID, OCS_VECTOR3D* Position, OCS_QUATERNION* Orientation) const
 {
 	if (InputDevices.Contains(DeviceName)) {
 		InputDevices[DeviceName]->GetTransform(ControlID, Position, Orientation);
 	}
 	else {
-		*Position = ONAIRVR_VECTOR3D();
-		*Orientation = ONAIRVR_QUATERNION();
+		*Position = OCS_VECTOR3D();
+		*Orientation = OCS_QUATERNION();
 	}
 }
 
-void FAirVRInputStream::GetTransform(FString DeviceName, uint8 ControlID, double& TimeStamp, ONAIRVR_VECTOR3D* Position, ONAIRVR_QUATERNION* Orientation) const
-{
-    if (InputDevices.Contains(DeviceName)) {
-        InputDevices[DeviceName]->GetTransform(ControlID, TimeStamp, Position, Orientation);
-    }
-    else {
-		TimeStamp = 0.0;
-        *Position = ONAIRVR_VECTOR3D();
-        *Orientation = ONAIRVR_QUATERNION();
-    }
-}
-
-ONAIRVR_QUATERNION FAirVRInputStream::GetOrientation(const FString& DeviceName, uint8 ControlID) const
+OCS_QUATERNION FAirVRInputStream::GetOrientation(const FString& DeviceName, uint8 ControlID) const
 {
     if (InputDevices.Contains(DeviceName)) {
         return InputDevices[DeviceName]->GetOrientation(ControlID);
     }
-    return ONAIRVR_QUATERNION();
+    return OCS_QUATERNION();
 }
 
-ONAIRVR_VECTOR2D FAirVRInputStream::GetAxis2D(const FString& DeviceName, uint8 ControlID) const
+OCS_VECTOR2D FAirVRInputStream::GetAxis2D(const FString& DeviceName, uint8 ControlID) const
 {
     if (InputDevices.Contains(DeviceName)) {
         return InputDevices[DeviceName]->GetAxis2D(ControlID);
     }
-    return ONAIRVR_VECTOR2D();
+    return OCS_VECTOR2D();
 }
 
 float FAirVRInputStream::GetAxis(const FString& DeviceName, uint8 ControlID) const
@@ -227,11 +214,11 @@ bool FAirVRInputStream::IsDeviceFeedbackEnabled(const FString& DeviceName) const
 void FAirVRInputStream::EnableTrackedDeviceFeedback(const FString& DeviceName, const void* CookieTexture, int CookieTextureSize, float CookieDepthScaleMultiplier)
 {
     if (DeviceFeedbacks.Contains(DeviceName) == false) {
-        FAirVRTrackedDeviceFeedback* Feedback = CreateTrackedDeviceFeedback(DeviceName, CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
+        FAirVRInputDeviceFeedback* Feedback = CreateTrackedDeviceFeedback(DeviceName, CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
         if (Feedback) {
             DeviceFeedbacks.Add(DeviceName, Feedback);
             if (Owner->IsBound()) {
-                Feedback->OnRegistered(onairvr_RegisterInputSender(Owner->GetPlayerID(), TCHAR_TO_UTF8(*DeviceName), Feedback->GetCookieArgs()));
+                Feedback->OnRegistered(ocs_RegisterInputSender(Owner->GetPlayerID(), TCHAR_TO_UTF8(*DeviceName), Feedback->GetCookieArgs()));
             }
         }
     }
@@ -240,9 +227,9 @@ void FAirVRInputStream::EnableTrackedDeviceFeedback(const FString& DeviceName, c
 void FAirVRInputStream::DisableDeviceFeedback(const FString& DeviceName)
 {
     if (DeviceFeedbacks.Contains(DeviceName)) {
-        FAirVRTrackedDeviceFeedback* Feedback = DeviceFeedbacks[DeviceName];
+        FAirVRInputDeviceFeedback* Feedback = DeviceFeedbacks[DeviceName];
         if (Owner->IsBound() && Feedback->IsRegistered()) {
-            onairvr_UnregisterInputSender(Owner->GetPlayerID(), Feedback->GetDeviceID());
+            ocs_UnregisterInputSender(Owner->GetPlayerID(), Feedback->GetDeviceID());
             Feedback->OnUnregistered();
         }
         DeviceFeedbacks.Remove(DeviceName);
@@ -250,42 +237,54 @@ void FAirVRInputStream::DisableDeviceFeedback(const FString& DeviceName)
     }
 }
 
-void FAirVRInputStream::FeedbackTrackedDevice(const FString& DeviceName, uint8 ControlID, const ONAIRVR_VECTOR3D& RayOrigin, const ONAIRVR_VECTOR3D& HitPosition, const ONAIRVR_VECTOR3D& HitNormal)
+void FAirVRInputStream::EnableRaycastHit(const FString& DeviceName, bool bEnable) 
 {
     if (DeviceFeedbacks.Contains(DeviceName)) {
-        DeviceFeedbacks[DeviceName]->SetFeedback(RayOrigin, HitPosition, HitNormal);
+        DeviceFeedbacks[DeviceName]->EnableRaycastHit(bEnable);
     }
 }
 
-void FAirVRInputStream::PendInput(FAirVRInputSender* Sender, uint8 ControlID, const float* Values, int Length, ONAIRVR_INPUT_SENDING_POLICY Policy)
+void FAirVRInputStream::UpdateRaycastHitResult(const FString& DeviceName, const OCS_VECTOR3D& RayOrigin, const OCS_VECTOR3D& HitPosition, const OCS_VECTOR3D& HitNormal)
+{
+    if (DeviceFeedbacks.Contains(DeviceName)) {
+        DeviceFeedbacks[DeviceName]->PendRaycastHitResult(RayOrigin, HitPosition, HitNormal);
+    }
+}
+
+void FAirVRInputStream::UpdateRenderOnClient(const FString& DeviceName, bool bRenderOnClient) 
+{
+    if (DeviceFeedbacks.Contains(DeviceName) && DeviceFeedbacks[DeviceName]->IsControllerDevice()) {
+        ((FAirVRControllerDeviceFeedback*)DeviceFeedbacks[DeviceName])->bRenderOnClient = bRenderOnClient;
+    }
+}
+
+void FAirVRInputStream::PendInput(FAirVRInputSender* Sender, uint8 ControlID, const float* Values, int Length, OCS_INPUT_SENDING_POLICY Policy)
 {
     check(Sender->IsRegistered());
-    onairvr_PendInput(Owner->GetPlayerID(), static_cast<uint8>(Sender->GetDeviceID()), ControlID, Values, Length, Policy);
+    ocs_PendInputFloat(Owner->GetPlayerID(), static_cast<uint8>(Sender->GetDeviceID()), ControlID, Values, Length, Policy);
+}
+
+void FAirVRInputStream::PendInput(FAirVRInputSender* Sender, uint8 ControlID, const uint8* Values, int Length, OCS_INPUT_SENDING_POLICY Policy) 
+{
+    check(Sender->IsRegistered());
+    ocs_PendInputByte(Owner->GetPlayerID(), static_cast<uint8>(Sender->GetDeviceID()), ControlID, Values, Length, Policy);
 }
 
 bool FAirVRInputStream::GetInput(FAirVRInputReceiver* Receiver, uint8 ControlID, float* Values, int Length)
 {
     if (Receiver->IsRegistered()) {
-        return onairvr_GetInput(Owner->GetPlayerID(), static_cast<uint8>(Receiver->GetDeviceID()), ControlID, Values, Length);
+        return ocs_GetInputFloat(Owner->GetPlayerID(), static_cast<uint8>(Receiver->GetDeviceID()), ControlID, Values, Length);
     }
     return false;
 }
 
-bool FAirVRInputStream::GetInputWithTimeStamp(FAirVRInputReceiver* Receiver, uint8 ControlID, float* Values, int Length, double* TimeStamp)
+FAirVRInputDeviceFeedback* FAirVRInputStream::CreateTrackedDeviceFeedback(const FString& DeviceName, const void* CookieTexture, int CookieTextureSize, float CookieDepthScaleMultiplier) const
 {
-	if (Receiver->IsRegistered()) {
-		return onairvr_GetInput(Owner->GetPlayerID(), static_cast<uint8>(Receiver->GetDeviceID()), ControlID, Values, Length, TimeStamp);
-	}
-	return false;
-}
-
-FAirVRTrackedDeviceFeedback* FAirVRInputStream::CreateTrackedDeviceFeedback(const FString& DeviceName, const void* CookieTexture, int CookieTextureSize, float CookieDepthScaleMultiplier) const
-{
-    if (DeviceName.Equals(ONAIRVR_INPUT_DEVICE_HEADTRACKER)) {
-        return new FAirVRHeadTrackerDeviceFeedback(CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
+    if (DeviceName.Equals(ONAIRVR_INPUT_DEVICE_LEFT_HAND_TRACKER)) {
+        return new FAirVRLeftHandTrackerDeviceFeedback(CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
     }
-    else if (DeviceName.Equals(ONAIRVR_INPUT_DEVICE_TRACKED_CONTROLLER)) {
-        return new FAirVRTrackedControllerDeviceFeedback(CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
+    else if (DeviceName.Equals(ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER)) {
+        return new FAirVRRightHandTrackerDeviceFeedback(CookieTexture, CookieTextureSize, CookieDepthScaleMultiplier);
     }
     return nullptr;
 }
