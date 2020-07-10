@@ -11,30 +11,42 @@
 
 #include "AirVRServerFunctionLibrary.h"
 #include "InputCoreTypes.h"
+#include "IHapticDevice.h"
+#include "GenericPlatform/IInputInterface.h"
 #include "GenericPlatform/GenericApplicationMessageHandler.h"
 
 class FAirVRCameraRigInput
 {
+private:
+    typedef TArray<FName> FKeyNames;
+
 public:
-    FAirVRCameraRigInput(int32 InControllerID) : 
-        ControllerID(InControllerID), 
-        LeftControllerPosition(FVector::ZeroVector), LeftControllerOrientation(FQuat::Identity),
-        RightControllerPosition(FVector::ZeroVector), RightControllerOrientation(FQuat::Identity) {}
+    FAirVRCameraRigInput(int32 InControllerID);
     ~FAirVRCameraRigInput() {}
 
 public:
-    bool IsControllerAvailable(const EControllerHand DeviceHand) const;
+    bool IsControllerAvailable(EControllerHand DeviceHand) const;
 
-    void GetControllerOrientationAndPosition(const EControllerHand DeviceHand, FRotator& OutOrientation, FVector& OutPosition);
+    void GetControllerOrientationAndPosition(EControllerHand DeviceHand, FRotator& OutOrientation, FVector& OutPosition);
+    void SetHapticFeedback(EControllerHand DeviceHand, const FHapticFeedbackValues& Values);
+    void SetForceFeedback(const FForceFeedbackValues& Values);
     void UpdateAndDispatch(FGenericApplicationMessageHandler& MessageHandler);
 
 private:
-    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName KeyForX, FName KeyForY);
-    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKeyForX, FName LeftKeyForY, FName RightKeyForX, FName RightKeyForY);
-    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName Key);
-    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKey, FName RightKey);
-    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName Key);
-    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, FName LeftKey, FName RightKey);
+    bool ParseDeviceType(EControllerHand DeviceHand, FAirVRInputDeviceType& Result) const;
+    bool ParseDeviceType(FForceFeedbackChannelType Channel, FAirVRInputDeviceType& Result) const;
+    int LastVibrationIndex(FAirVRInputDeviceType Device) const;
+    void SetVibration(FAirVRInputDeviceType Device, float Frequency, float Amplitude, bool bIsHapticEffect);
+
+    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8 Control, const FKeyNames& KeysForX, const FKeyNames& KeysForY);
+    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Keys);
+    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Keys);
+    void DispatchControlDirectionButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Keys, OCS_INPUT_DIRECTION Direction);
+    void OnControllerAnalog(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Keys, int32 ControllerID, float Value);
+    void OnControllerButtonPressed(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Keys, int32 ControllerID, bool IsRepeat);
+    void OnControllerButtonReleased(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Keys, int32 ControllerID, bool IsRepeat);
+
+    void DispatchScreenTouches(FGenericApplicationMessageHandler& MessageHandler);
 
 private:
     int32 ControllerID;
@@ -42,4 +54,6 @@ private:
     FQuat LeftControllerOrientation;
     FVector RightControllerPosition;
     FQuat RightControllerOrientation;
+    bool bPlayingHapticEffect;
+    FHapticFeedbackValues LastVibrationValue[2];
 };
