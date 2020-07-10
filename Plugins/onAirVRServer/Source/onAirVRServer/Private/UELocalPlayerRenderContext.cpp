@@ -10,6 +10,8 @@
 #include "UELocalPlayerRenderContext.h"
 #include "AirVRServerPrivate.h"
 
+#include "GameFramework/PlayerController.h"
+#include "Engine/LocalPlayer.h"
 #include "AirVRServerHMD.h"
 
 FUELocalPlayerRenderContext::FUELocalPlayerRenderContext()

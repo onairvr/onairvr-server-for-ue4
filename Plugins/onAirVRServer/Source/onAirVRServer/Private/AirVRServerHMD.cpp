@@ -10,11 +10,13 @@
 #include "AirVRServerHMD.h"
 #include "AirVRServerPrivate.h"
 
+#include "GameFramework/WorldSettings.h"
+#include "Engine/LocalPlayer.h"
 #include "PostProcess/PostProcessHMD.h"
+#include "Kismet/GameplayStatics.h"
 #include "SceneRendering.h"
 #include "dxgiformat.h"
 #include "Interfaces/IPluginManager.h"
-#include "onairvr_server.h"
 #include "IAirVRServerPlugin.h"
 #include "AirVRCameraRig.h"
 #include "AirVRServerFunctionLibrary.h"
@@ -23,14 +25,15 @@
 #include "AirVRServerSettings.h"
 #include "AirVRClientConfigImpl.h"
 #include "AudioDevice.h"
+#include "AudioMixerDevice.h"
 #include "Misc/DefaultValueHelper.h"
 
 #if WITH_EDITOR
 #include "Editor/UnrealEd/Classes/Editor/EditorEngine.h"
 #endif
 
-#define CAMERA_RIG_MAX_VIDEO_WIDTH  2560
-#define CAMERA_RIG_MAX_VIDEO_HEIGHT 1280
+#define CAMERA_RIG_MAX_VIDEO_WIDTH  3200
+#define CAMERA_RIG_MAX_VIDEO_HEIGHT 1600
 
 class FAirVRServerPlugin : public IAirVRServerPlugin
 {
@@ -126,14 +129,16 @@ FAirVRServerHMD::FAirVRServerHMD()
       GameWorldToMeters(100.0f),
       PlayerCameraRigMap(&EventDispatcher),
       MaxRenderTargetSize(CAMERA_RIG_MAX_VIDEO_WIDTH, CAMERA_RIG_MAX_VIDEO_HEIGHT),
+      bUserUseFixedFrameRate(false),
+      UserFixedFrameRate(0.0f),
       MasterAudioSendEffectSubmixPreset(nullptr)
 {
     FString PluginPath = IPluginManager::Get().FindPlugin(TEXT("onAirVRServer"))->GetBaseDir();
-    AirVRServerDllHandle = FPlatformProcess::GetDllHandle(*FPaths::Combine(*PluginPath, TEXT("Binaries"), TEXT("Win64"), TEXT("onAirVRUnrealServerPlugin.dll")));
+    AirVRServerDllHandle = FPlatformProcess::GetDllHandle(*FPaths::Combine(*PluginPath, TEXT("Binaries"), TEXT("Win64"), TEXT("ocs.dll")));
     check(AirVRServerDllHandle);
 
     EventDispatcher.AddListener(this);
-    onairvr_InitModule(GDynamicRHI->RHIGetNativeDevice(), DXGI_FORMAT_B8G8R8A8_UNORM);
+    ocs_InitModule(GDynamicRHI->RHIGetNativeDevice(), DXGI_FORMAT_B8G8R8A8_UNORM);
 
     XRCamera = FSceneViewExtensions::NewExtension<FAirVRServerXRCamera>(this, LocalPlayerRenderContext);
 }
@@ -179,8 +184,8 @@ bool FAirVRServerHMD::GetConfig(int32 PlayerControllerID, class UAirVRClientConf
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
         if (Item.CameraRig->IsBound()) {
-            ONAIRVR_CLIENT_CONFIG Conf;
-            onairvr_GetConfig(Item.CameraRig->GetPlayerID(), &Conf);
+            OCS_CLIENT_CONFIG Conf;
+            ocs_GetConfig(Item.CameraRig->GetPlayerID(), &Conf);
             UAirVRClientConfigImpl* ConfigImpl = NewObject<UAirVRClientConfigImpl>();
             ConfigImpl->SetConfig(Conf, GetWorldToMetersScale());
 
@@ -213,25 +218,8 @@ void FAirVRServerHMD::ResetOrientationAndPosition(int32 PlayerControllerID)
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
         if (Item.CameraRig->IsBound()) {
-            onairvr_RecenterPose(Item.CameraRig->GetPlayerID());
+            ocs_RecenterPose(Item.CameraRig->GetPlayerID());
         }
-    }
-}
-
-void FAirVRServerHMD::AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps)
-{
-    check(IsInGameThread());
-
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) && Item.CameraRig->IsBound()) {
-        int InPlayerID = Item.CameraRig->GetPlayerID();
-        uint32 InBitrate = (uint32)(BitrateInKbps * 1000);
-        ENQUEUE_RENDER_COMMAND(onairvr_AdjustBitRate_RenderThread)(
-            [InPlayerID, InBitrate](FRHICommandListImmediate& RHICmdList) 
-            {
-                onairvr_AdjustBitRate_RenderThread(InPlayerID, InBitrate);
-            }
-        );
     }
 }
 
@@ -241,7 +229,7 @@ void FAirVRServerHMD::Disconnect(int32 PlayerControllerID)
 
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) && Item.CameraRig->IsBound()) {
-        onairvr_Disconnect(Item.CameraRig->GetPlayerID());
+        ocs_Disconnect(Item.CameraRig->GetPlayerID());
     }
 }
 
@@ -249,11 +237,23 @@ bool FAirVRServerHMD::IsInputDeviceAvailable(int32 PlayerControllerID, FAirVRInp
 {
     check(IsInGameThread());
 
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        return Item.CameraRig->GetInputStream()->IsInputDeviceAvailable(ParseInputDeviceName(Device));
+    switch (Device) {
+        case FAirVRInputDeviceType::HeadTracker:
+            return true;
+        case FAirVRInputDeviceType::LeftHandTracker:
+        case FAirVRInputDeviceType::RightHandTracker: {
+            FAirVRPlayerCameraRigMap::Item Item;
+            if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+                uint8 Status = 0;
+                if (Item.CameraRig->GetInputStream()->GetState((AirVRInputDeviceID)Device, (uint8)AirVRHandTrackerControl::Status, &Status)) {
+                    return Status != 0;
+                }
+            }
+            return false;
+        }
+        default:
+            return false;
     }
-    return false;
 }
 
 void FAirVRServerHMD::GetTrackedDeviceRotationAndPosition(int32 PlayerControllerID, FAirVRInputDeviceType Device, FRotator& Rotation, FVector& Position) const
@@ -269,30 +269,21 @@ void FAirVRServerHMD::GetTrackedDeviceRotationAndPosition(int32 PlayerController
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
         switch (Device) {
-        case FAirVRInputDeviceType::HeadTracker: {
-            Position = Item.CameraRig->GetCenterEyePosition() * GetWorldToMetersScale();
-            Rotation = Item.CameraRig->GetHeadOrientation(false).Rotator();
-            return;
-        }
-        case FAirVRInputDeviceType::LeftHandTracker: {
-            ONAIRVR_VECTOR3D Pos;
-            ONAIRVR_QUATERNION Rot;
-            Item.CameraRig->GetInputStream()->GetTransform(ONAIRVR_INPUT_DEVICE_LEFT_HAND_TRACKER, (uint8)AirVRLeftHandTrackerKey::Transform, &Pos, &Rot);
+            case FAirVRInputDeviceType::HeadTracker: {
+                Position = Item.CameraRig->GetCenterEyePosition() * GetWorldToMetersScale();
+                Rotation = Item.CameraRig->GetHeadOrientation(false).Rotator();
+                return;
+            }
+            case FAirVRInputDeviceType::LeftHandTracker:
+            case FAirVRInputDeviceType::RightHandTracker: {
+                OCS_VECTOR3D Pos;
+                OCS_QUATERNION Rot;
+                Item.CameraRig->GetInputStream()->GetPose((AirVRInputDeviceID)Device, (uint8)AirVRHandTrackerControl::Pose, &Pos, &Rot);
 
-            Position = Item.CameraRig->GetHMDToPlayerSpaceMatrix().TransformPosition(FVector(Pos.x, Pos.y, Pos.z)) * GetWorldToMetersScale();
-            Rotation = Item.CameraRig->GetHMDToPlayerSpaceMatrix().Rotator() + FQuat(Rot.x, Rot.y, Rot.z, Rot.w).Rotator();
-            return;
-        }
-        case FAirVRInputDeviceType::RightHandTracker:
-        {
-            ONAIRVR_VECTOR3D Pos;
-            ONAIRVR_QUATERNION Rot;
-            Item.CameraRig->GetInputStream()->GetTransform(ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER, (uint8)AirVRRightHandTrackerKey::Transform, &Pos, &Rot);
-
-            Position = Item.CameraRig->GetHMDToPlayerSpaceMatrix().TransformPosition(FVector(Pos.x, Pos.y, Pos.z)) * GetWorldToMetersScale();
-            Rotation = Item.CameraRig->GetHMDToPlayerSpaceMatrix().Rotator() + FQuat(Rot.x, Rot.y, Rot.z, Rot.w).Rotator();
-            return;
-        }
+                Position = Item.CameraRig->GetHMDToPlayerSpaceMatrix().TransformPosition(VectorFrom(Pos)) * GetWorldToMetersScale();
+                Rotation = Item.CameraRig->GetHMDToPlayerSpaceMatrix().Rotator() + QuatFrom(Rot).Rotator();
+                return;
+            }
         }
     }
 
@@ -326,7 +317,7 @@ void FAirVRServerHMD::SendAudioFrame(int32 PlayerControllerID, const float* Data
 
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) && Item.CameraRig->IsBound()) {
-        onairvr_EncodeAudioFrame(Item.CameraRig->GetPlayerID(), Data, SampleCount, Channels, TimeStamp);
+        ocs_EncodeAudioFrame(Item.CameraRig->GetPlayerID(), Data, SampleCount, Channels, TimeStamp);
     }
 }
 
@@ -334,7 +325,7 @@ void FAirVRServerHMD::SendAudioFrameToAllPlayers(const float* Data, int SampleCo
 {
     FScopeLock Lock(&AudioCritSect);
 
-    onairvr_EncodeAudioFrameForAllPlayers(Data, SampleCount, Channels, TimeStamp);
+    ocs_EncodeAudioFrameForAllPlayers(Data, SampleCount, Channels, TimeStamp);
 }
 
 void FAirVRServerHMD::EnableNetworkTimeWarp(int32 PlayerControllerID, bool bEnable)
@@ -345,69 +336,48 @@ void FAirVRServerHMD::EnableNetworkTimeWarp(int32 PlayerControllerID, bool bEnab
     }
 }
 
-bool FAirVRServerHMD::IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device) const
+void FAirVRServerHMD::UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal)
 {
     check(IsInGameThread());
 
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        return Item.CameraRig->GetInputStream()->IsDeviceFeedbackEnabled(ParseInputDeviceName(Device));
-    }
-    return false;
-}
+    switch (Device) {
+        case FAirVRInputDeviceType::LeftHandTracker:
+        case FAirVRInputDeviceType::RightHandTracker: {
+            FAirVRPlayerCameraRigMap::Item Item;
+            if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+                FMatrix PlayerToHMDSpaceMatrix = Item.CameraRig->GetHMDToPlayerSpaceMatrix().Inverse();
+                FVector RayOriginScaled = PlayerToHMDSpaceMatrix.TransformPosition(RayOrigin / GetWorldToMetersScale());
+                FVector HitPositionScaled = PlayerToHMDSpaceMatrix.TransformPosition(HitPosition / GetWorldToMetersScale());
+                FVector HitNormalScaled = PlayerToHMDSpaceMatrix.TransformVector(HitNormal / GetWorldToMetersScale());
 
-void FAirVRServerHMD::EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier)
-{
-    check(IsInGameThread());
-
-    if (IsTrackedDevice(Device) == false) {
-        return;
-    }
-
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-        IFileHandle* CookieFileHandle = PlatformFile.OpenRead(*CookieTextureFile);
-        if (CookieFileHandle) {
-            uint8* Data = new uint8[CookieFileHandle->Size()];
-            CookieFileHandle->Read(Data, CookieFileHandle->Size());
-
-            Item.CameraRig->GetInputStream()->EnableTrackedDeviceFeedback(ParseInputDeviceName(Device), Data, (int)CookieFileHandle->Size(), DepthScaleMultiplier);
-            delete[] Data;
+                Item.CameraRig->GetInputStream()->PendRaycastHit((AirVRInputDeviceID)Device, 
+                                                                 (uint8)AirVRHandTrackerFeedbackControl::RaycastHitResult,
+                                                                 OCSVector3DFrom(RayOriginScaled), 
+                                                                 OCSVector3DFrom(HitPositionScaled), 
+                                                                 OCSVector3DFrom(HitNormalScaled));
+            }
+            break;
         }
+        default:
+            break;  
     }
 }
 
-void FAirVRServerHMD::DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device)
+void FAirVRServerHMD::UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient) 
 {
     check(IsInGameThread());
 
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        Item.CameraRig->GetInputStream()->DisableDeviceFeedback(ParseInputDeviceName(Device));
-    }
-}
-
-void FAirVRServerHMD::FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal)
-{
-    check(IsInGameThread());
-
-    if (IsTrackedDevice(Device) == false) {
-        return;
-    }
-
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        FMatrix PlayerToHMDSpaceMatrix = Item.CameraRig->GetHMDToPlayerSpaceMatrix().Inverse();
-        FVector RayOriginScaled = PlayerToHMDSpaceMatrix.TransformPosition(RayOrigin / GetWorldToMetersScale());
-        FVector HitPositionScaled = PlayerToHMDSpaceMatrix.TransformPosition(HitPosition / GetWorldToMetersScale());
-        FVector HitNormalScaled = PlayerToHMDSpaceMatrix.TransformVector(HitNormal / GetWorldToMetersScale());
-
-        Item.CameraRig->GetInputStream()->FeedbackTrackedDevice(ParseInputDeviceName(Device),
-                                                                ParseRaycastResultFeedbackControlID(Device),
-                                                                ONAIRVR_VECTOR3D(RayOriginScaled.X, RayOriginScaled.Y, RayOriginScaled.Z),
-                                                                ONAIRVR_VECTOR3D(HitPositionScaled.X, HitPositionScaled.Y, HitPositionScaled.Z),
-                                                                ONAIRVR_VECTOR3D(HitNormalScaled.X, HitNormalScaled.Y, HitNormalScaled.Z));
+    switch (Device) {
+        case FAirVRInputDeviceType::LeftHandTracker:
+        case FAirVRInputDeviceType::RightHandTracker: {
+            FAirVRPlayerCameraRigMap::Item Item;
+            if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+                Item.CameraRig->GetInputStream()->PendState((AirVRInputDeviceID)Device, (uint8)AirVRHandTrackerFeedbackControl::RenderOnClient, bRenderOnClient ? 1 : 0);
+            }
+            break;
+        }
+        default:
+            break;
     }
 }
 
@@ -417,77 +387,146 @@ void FAirVRServerHMD::GetCurrentPlayers(TArray<int32>& Result)
     PlayerCameraRigMap.GetUnboundPlayers(Result);
 }
 
-void FAirVRServerHMD::GetInputTransform(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector& Position, FQuat& Orientation) const
+uint8_t FAirVRServerHMD::GetInputState(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const 
 {
     FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        ONAIRVR_VECTOR3D Pos;
-        ONAIRVR_QUATERNION Quat;
-        Item.CameraRig->GetInputStream()->GetTransform(ParseInputDeviceName(Device), Control, &Pos, &Quat);
+    uint8 State = 0;
 
-        FMatrix HMDToPlayerSpaceMatrix = Item.CameraRig->GetHMDToPlayerSpaceMatrix();
-        Position = HMDToPlayerSpaceMatrix.TransformPosition(FVector(Pos.x, Pos.y, Pos.z)) * GetWorldToMetersScale();
-        Orientation = HMDToPlayerSpaceMatrix.ToQuat() * FQuat(Quat.x, Quat.y, Quat.z, Quat.w);
-        return;
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) &&
+        Item.CameraRig->GetInputStream()->GetState((AirVRInputDeviceID)Device, Control, &State)) {
+        return State;
     }
-
-    Position = FVector::ZeroVector;
-    Orientation = FQuat::Identity;
+    return 0;
 }
 
-FVector2D FAirVRServerHMD::GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const
+uint8_t FAirVRServerHMD::GetInputByteAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const {
+    FAirVRPlayerCameraRigMap::Item Item;
+    uint8 Axis = 0;
+
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) &&
+        Item.CameraRig->GetInputStream()->GetByteAxis((AirVRInputDeviceID)Device, Control, &Axis)) {
+        return Axis;
+    }
+    return 0;
+}
+
+float FAirVRServerHMD::GetInputAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const 
 {
     FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        ONAIRVR_VECTOR2D Result = Item.CameraRig->GetInputStream()->GetAxis2D(ParseInputDeviceName(Device), Control);
-        return FVector2D(Result.x, Result.y);
+    float Axis = 0;
+
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) &&
+        Item.CameraRig->GetInputStream()->GetAxis((AirVRInputDeviceID)Device, Control, &Axis)) {
+        return Axis;
+    }
+    return 0;
+}
+
+FVector2D FAirVRServerHMD::GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const 
+{
+    FAirVRPlayerCameraRigMap::Item Item;
+    OCS_VECTOR2D Axis2D;
+
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) &&
+        Item.CameraRig->GetInputStream()->GetAxis2D((AirVRInputDeviceID)Device, Control, &Axis2D)) {
+        return FVector2D(Axis2D.x, Axis2D.y);
     }
     return FVector2D::ZeroVector;
 }
 
-float FAirVRServerHMD::GetInputAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const
+void FAirVRServerHMD::GetInputPose(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector& Position, FQuat& Orientation) const
 {
     FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        return Item.CameraRig->GetInputStream()->GetAxis(ParseInputDeviceName(Device), Control);
+    OCS_VECTOR3D Pos;
+    OCS_QUATERNION Quat;
+
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) == false ||
+        Item.CameraRig->GetInputStream()->GetPose((AirVRInputDeviceID)Device, Control, &Pos, &Quat) == false) {
+        Position = FVector::ZeroVector;
+        Orientation = FQuat::Identity;
+        return;
     }
-    return 0.0f;
+
+    FMatrix HMDToPlayerSpaceMatrix = Item.CameraRig->GetHMDToPlayerSpaceMatrix();
+    Position = HMDToPlayerSpaceMatrix.TransformPosition(VectorFrom(Pos)) * GetWorldToMetersScale();
+    Orientation = HMDToPlayerSpaceMatrix.ToQuat() * QuatFrom(Quat);
 }
 
-float FAirVRServerHMD::GetInputButtonRaw(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const
+void FAirVRServerHMD::GetInputTouch2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector2D& Position, uint8& State) const 
 {
     FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        return Item.CameraRig->GetInputStream()->GetButtonRaw(ParseInputDeviceName(Device), Control);
+    OCS_VECTOR2D Pos;
+
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item) == false ||
+        Item.CameraRig->GetInputStream()->GetTouch2D((AirVRInputDeviceID)Device, Control, &Pos, &State) == false) {
+        Position = FVector2D::ZeroVector;
+        State = 0;
+        return;
     }
-    return 0.0f;
+
+    Position = Vector2DFrom(Pos);
 }
 
-bool FAirVRServerHMD::GetInputButton(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const
+bool FAirVRServerHMD::IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const 
 {
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        return Item.CameraRig->GetInputStream()->GetButton(ParseInputDeviceName(Device), Control);
-    }
-    return 0.0f;
-}
-
-bool FAirVRServerHMD::GetInputButtonDown(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const
-{
-    FAirVRPlayerCameraRigMap::Item Item;
-    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        return Item.CameraRig->GetInputStream()->GetButtonDown(ParseInputDeviceName(Device), Control);
+        return Item.CameraRig->GetInputStream()->IsActive((AirVRInputDeviceID)Device, Control);
     }
     return false;
 }
 
-bool FAirVRServerHMD::GetInputButtonUp(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const
+bool FAirVRServerHMD::IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) const 
 {
     FAirVRPlayerCameraRigMap::Item Item;
     if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
-        return Item.CameraRig->GetInputStream()->GetButtonUp(ParseInputDeviceName(Device), Control);
+        return Item.CameraRig->GetInputStream()->IsActive((AirVRInputDeviceID)Device, Control, Direction);
     }
     return false;
+}
+
+bool FAirVRServerHMD::GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const 
+{
+    FAirVRPlayerCameraRigMap::Item Item;
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+        return Item.CameraRig->GetInputStream()->GetActivated((AirVRInputDeviceID)Device, Control);
+    }
+    return false;
+}
+
+bool FAirVRServerHMD::GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) const 
+{
+    FAirVRPlayerCameraRigMap::Item Item;
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+        return Item.CameraRig->GetInputStream()->GetActivated((AirVRInputDeviceID)Device, Control, Direction);
+    }
+    return false;
+}
+
+bool FAirVRServerHMD::GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const 
+{
+    FAirVRPlayerCameraRigMap::Item Item;
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+        return Item.CameraRig->GetInputStream()->GetDeactivated((AirVRInputDeviceID)Device, Control);
+    }
+    return false;
+}
+
+bool FAirVRServerHMD::GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) const 
+{
+    FAirVRPlayerCameraRigMap::Item Item;
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+        return Item.CameraRig->GetInputStream()->GetDeactivated((AirVRInputDeviceID)Device, Control, Direction);
+    }
+    return false;
+}
+
+void FAirVRServerHMD::PendInputVibration(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, float Frequency, float Amplitude) const 
+{
+    FAirVRPlayerCameraRigMap::Item Item;
+    if (PlayerCameraRigMap.GetItem(PlayerControllerID, Item)) {
+        Item.CameraRig->GetInputStream()->PendVibration((AirVRInputDeviceID)Device, Control, Frequency, Amplitude);
+    }
 }
 
 FString FAirVRServerHMD::GetVersionString() const
@@ -515,10 +554,10 @@ bool FAirVRServerHMD::OnStartGameFrame(FWorldContext& WorldContext)
         FScopeLock Lock(&AudioCritSect);
 
         PlayerCameraRigMap.OnStartGameFrame(WorldContext);
-        onairvr_Update(UGameplayStatics::GetWorldDeltaSeconds(WorldContext.World()));
+        ocs_Update(UGameplayStatics::GetWorldDeltaSeconds(WorldContext.World()));
         EventDispatcher.DispatchMessages();
 
-        PlayerCameraRigMap.UpdateCameraRigs();
+        PlayerCameraRigMap.UpdateCameraRigs(WorldContext);
 
         LocalPlayerRenderContext.OnStartGameFrame(WorldContext);
     }
@@ -693,7 +732,7 @@ void FAirVRServerHMD::OnBeginRendering_GameThread()
 			RenderItem.RenderCameraRigRequests.Add(FAirVRRenderCameraRigQueue::RenderCameraRigRequest(MapItem.CameraRig->GetHeadOrientation(true),
 				MapItem.CameraRig->GetTrackingTimeStamp(),
 				MapItem.bEncode ? MapItem.GetRenderViewport(eSSP_FULL) : FIntRect(),
-				MapItem.GetRenderViewport(eSSP_LEFT_EYE),
+                MapItem.GetRenderViewport(eSSP_LEFT_EYE),
 				MapItem.ScreenViewport,
 				MapItem.CameraRig->IsBound() ? MapItem.CameraRig->GetPlayerID() : -1));
 		}
@@ -764,11 +803,11 @@ bool FAirVRServerHMD::GetHMDDistortionEnabled(EShadingPath /* ShadingPath */) co
     return false;
 }
 
-//void FAirVRServerHMD::UpdatePostProcessSettings(FPostProcessSettings* Settings)
-//{
-//	// not allow to adjust VR scale on server side
-//	Settings->ScreenPercentage = 100.0f;
-//}
+// void FAirVRServerHMD::UpdatePostProcessSettings(FPostProcessSettings* Settings)
+// {
+// 	// not allow to adjust VR scale on server side
+// 	Settings->ScreenPercentage = 100.0f;
+// }
 
 bool FAirVRServerHMD::IsStereoEnabled() const
 {
@@ -794,10 +833,8 @@ void FAirVRServerHMD::AdjustViewRect(enum EStereoscopicPass StereoPass, int32& X
     FIntRect Viewport = Item.GetRenderViewport(StereoPass);
     X = Viewport.Min.X;
     Y = Viewport.Min.Y;
-    SizeX = (StereoPass == eSSP_RIGHT_EYE && Item.bIsStereoscopic == false) ? 0 : Viewport.Width();
-    SizeY = (StereoPass == eSSP_RIGHT_EYE && Item.bIsStereoscopic == false) ? 0 : Viewport.Height();
-    
-    // A View of zero-area (SizeX = SizeY = 0) will be discarded during the view calculation of a local player.
+    SizeX = Viewport.Width();
+    SizeY = Viewport.Height();
 }
 
 FMatrix FAirVRServerHMD::GetStereoProjectionMatrix(const enum EStereoscopicPass StereoPassType) const
@@ -811,7 +848,12 @@ FMatrix FAirVRServerHMD::GetStereoProjectionMatrix(const enum EStereoscopicPass 
         return FMatrix::Identity;
     }
 
-    return StereoPassType == eSSP_LEFT_EYE ? Item.CameraRig->GetLeftEyeProjectionMatrix() : Item.CameraRig->GetRightEyeProjectionMatrix();
+    if (Item.bIsStereoscopic) {
+        return StereoPassType == eSSP_LEFT_EYE ? Item.CameraRig->GetLeftEyeProjectionMatrix() : Item.CameraRig->GetRightEyeProjectionMatrix();
+    }
+    else {
+        return Item.CameraRig->GetCameraProjectionMatrix();
+    }
 }
 
 void FAirVRServerHMD::RenderTexture_RenderThread(class FRHICommandListImmediate& RHICmdList, class FRHITexture2D* BackBuffer, class FRHITexture2D* SrcTexture, FVector2D WindowSize) const
@@ -823,12 +865,12 @@ void FAirVRServerHMD::RenderTexture_RenderThread(class FRHICommandListImmediate&
         TArray<FAirVRServerScreenRenderer::PanelRenderInfo> Panels;
         for (auto RenderRequest : Item.RenderCameraRigRequests) {
             if (RenderRequest.ShouldEncode()) {
-                onairvr_EncodeVideoFrame(RenderRequest.PlayerID,
-                                         ONAIRVR_VIEWPORT((int)RenderRequest.SrcRectEncode.Min.X, (int)RenderRequest.SrcRectEncode.Min.Y,
-                                         (int)RenderRequest.SrcRectEncode.Width(), (int)RenderRequest.SrcRectEncode.Height()),
-									     RenderRequest.TrackingTimeStamp,
-                                         ONAIRVR_QUATERNION(RenderRequest.Orientation.X, RenderRequest.Orientation.Y, RenderRequest.Orientation.Z, RenderRequest.Orientation.W),
-                                         SrcTexture->GetNativeResource());
+                ocs_EncodeVideoFrame(RenderRequest.PlayerID,
+                                     OCS_VIEWPORT((int)RenderRequest.SrcRectEncode.Min.X, (int)RenderRequest.SrcRectEncode.Min.Y,
+                                     (int)RenderRequest.SrcRectEncode.Width(), (int)RenderRequest.SrcRectEncode.Height()),
+									 RenderRequest.TrackingTimeStamp,
+                                     OCS_QUATERNION(RenderRequest.Orientation.X, RenderRequest.Orientation.Y, RenderRequest.Orientation.Z, RenderRequest.Orientation.W),
+                                     SrcTexture->GetNativeResource());
             }
             if (RenderRequest.ScreenViewport.Area() > 0) {
                 Panels.Add(FAirVRServerScreenRenderer::PanelRenderInfo(RenderRequest.SrcRectScreen, RenderRequest.ScreenViewport));
@@ -908,8 +950,8 @@ void FAirVRServerHMD::AirVREventSessionDisconnected(int PlayerID)
 void FAirVRServerHMD::AirVREventPlayerCreated(int PlayerID)
 {
     FAirVRCameraRig* CameraRig = nullptr;
-    ONAIRVR_CLIENT_CONFIG Config;
-    onairvr_GetConfig(PlayerID, &Config);
+    OCS_CLIENT_CONFIG Config;
+    ocs_GetConfig(PlayerID, &Config);
 
     TArray<int32> UnboundPlayers;
     PlayerCameraRigMap.GetUnboundPlayers(UnboundPlayers);
@@ -941,7 +983,11 @@ void FAirVRServerHMD::AirVREventPlayerCreated(int PlayerID)
     if (CameraRig) {
         PlayerCameraRigMap.MarkCameraRigAsBound(CameraRig);
         CameraRig->BindPlayer(PlayerID, Config);
-        onairvr_AcceptPlayer(PlayerID);
+        ocs_AcceptPlayer(PlayerID);
+
+        if (GetDefault<UAirVRServerSettings>()->AdaptiveFrameRate) {
+            GEngine->FixedFrameRate = GetAdaptiveFrameRate();
+        }
     }
 }
 
@@ -963,11 +1009,15 @@ void FAirVRServerHMD::AirVREventPlayerDestroyed(int PlayerID)
 
     Item.CameraRig->UnbindPlayer();
     PlayerCameraRigMap.MarkCameraRigAsUnbound(Item.CameraRig);
+
+    if (GetDefault<UAirVRServerSettings>()->AdaptiveFrameRate) {
+        GEngine->FixedFrameRate = GetAdaptiveFrameRate();
+    }
 }
 
 void FAirVRServerHMD::AirVREventPlayerShowCopyright(int PlayerID)
 {
-    UE_LOG(LogonAirVRServer, Log, TEXT("(C) 2016-2018 onAirVR. All right reserved."));
+    UE_LOG(LogonAirVRServer, Log, TEXT("(C) 2016-present onAirVR. All right reserved."));
 }
 
 float FAirVRServerHMD::GetWorldToMetersScale() const
@@ -978,15 +1028,15 @@ float FAirVRServerHMD::GetWorldToMetersScale() const
 FString FAirVRServerHMD::GetServerErrorString(int Result) const
 {
     switch (Result) {
-        case ONAIRVR_RESULT_NOT_SUPPORT_GPU:
+        case OCS_RESULT_NOT_SUPPORT_GPU:
             return TEXT("Graphics device is not supported");
-        case ONAIRVR_RESULT_LICENSE_NOT_VERIFIED:
+        case OCS_RESULT_LICENSE_NOT_VERIFIED:
             return TEXT("License is not verified yet");
-        case ONAIRVR_RESULT_LICENSE_NOT_FOUND:
+        case OCS_RESULT_LICENSE_NOT_FOUND:
             return TEXT("License file not found");
-        case ONAIRVR_RESULT_LICENSE_INVALID:
+        case OCS_RESULT_LICENSE_INVALID:
             return TEXT("Invalid license file");
-        case ONAIRVR_RESULT_LICENSE_EXPIRED:
+        case OCS_RESULT_LICENSE_EXPIRED:
             return TEXT("License expired");
         default:
             break;
@@ -1008,18 +1058,30 @@ bool FAirVRServerHMD::GetLocalPlayerFromViewTarget(class UGameInstance* GameInst
 
 void FAirVRServerHMD::HandleStereoEnabled(FWorldContext& WorldContext, bool bEnabled)
 {
+    const UAirVRServerSettings* Settings = GetDefault<UAirVRServerSettings>();
+
     if (bEnabled) {
+        if (Settings->AdaptiveFrameRate) {
+            bUserUseFixedFrameRate = GEngine->bUseFixedFrameRate;
+            UserFixedFrameRate = GEngine->FixedFrameRate;
+
+            GEngine->bUseFixedFrameRate = true;
+            GEngine->FixedFrameRate = Settings->MinFrameRate;
+        }
+
         StartupAirVRServer(WorldContext);
 
         // TODO enable contextual actions in FAirVRServerXRCamera
 
         GEngine->bForceDisableFrameRateSmoothing = true;
 
-        if (GetDefault<UAirVRServerSettings>()->BroadcastAudioToAllPlayers) {
+        if (Settings->DisableAudio == false) {
             AddAudioSendToMasterSubmix(WorldContext);
         }
     }
     else {
+        //RemoveAudioSendFromMasterSubmix(WorldContext);
+
         ShutdownAirVRServer();
 
         // TODO disable contextual actions in FAirVRServerXRCamera
@@ -1027,37 +1089,39 @@ void FAirVRServerHMD::HandleStereoEnabled(FWorldContext& WorldContext, bool bEna
         GEngine->bForceDisableFrameRateSmoothing = false;
 
         LocalPlayerRenderContext.OnStereoDisabled();
+
+        if (Settings->AdaptiveFrameRate) {
+            GEngine->bUseFixedFrameRate = bUserUseFixedFrameRate;
+            GEngine->FixedFrameRate = UserFixedFrameRate;
+        }
     }
 }
 
 void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
 {
-    const int MaxVideoBitrate = 160000000;
-
     const UAirVRServerSettings* Settings = GetDefault<UAirVRServerSettings>();
     check(Settings);
     const_cast<UAirVRServerSettings*>(Settings)->ParseCommandLineArgs();
 
-	int ret = onairvr_SetLicenseFile(TCHAR_TO_UTF8((WorldContext.World()->WorldType == EWorldType::Game ? *FPaths::Combine(*FPaths::RootDir(), *Settings->LicenseFilePath) :
-																										 *FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins"), TEXT("onAirVRServer"), TEXT("Resources"), TEXT("onairvr.license")))));
-    if (ret == ONAIRVR_RESULT_OK) {
-        onairvr_SetVideoEncoderParameters(Settings->MaxFrameRate, Settings->DefaultFrameRate, MaxVideoBitrate, Settings->VideoBitrate, 72);
+	int ret = ocs_SetLicenseFile(TCHAR_TO_UTF8((WorldContext.World()->WorldType == EWorldType::Game ? *FPaths::Combine(*FPaths::RootDir(), *Settings->LicenseFilePath) :
+                                                                                                      *FPaths::Combine(FPaths::ProjectDir(), TEXT("Plugins"), TEXT("onAirVRServer"), TEXT("Resources"), TEXT("onairvr.license")))));
+    if (ret == OCS_RESULT_OK) {
+        ocs_SetVideoEncoderParameters(120.0f, 0);
 
         FAudioDevice* AudioDevice = GEngine->GetActiveAudioDevice();
-        ret = onairvr_StartUp(Settings->MaxClientCount, 
-                             Settings->PortSTAP, 
-                             Settings->PortAMP, 
-                             Settings->LoopbackOnlyForSTAP, 
-                             AudioDevice ? (int)AudioDevice->GetSampleRate() : 48000);
+        ret = ocs_StartUp(1, 
+                          Settings->PortSTAP,
+                          Settings->PortAMP,
+                          Settings->LoopbackOnlyForSTAP, 
+                          AudioDevice ? (int)AudioDevice->GetSampleRate() : 48000);
 
-        if (ret == ONAIRVR_RESULT_OK) {
-            ENQUEUE_RENDER_COMMAND(onairvr_StartUp_RenderThread)(
+        if (ret == OCS_RESULT_OK) {
+            ENQUEUE_RENDER_COMMAND(ocs_StartUp_RenderThread)(
                 [](FRHICommandListImmediate& RHICmdList)
                 {
-                    onairvr_StartUp_RenderThread(GDynamicRHI->RHIGetNativeDevice());
+                    ocs_StartUp_RenderThread(GDynamicRHI->RHIGetNativeDevice());
                 }
             );
-            
             FlushRenderingCommands();
 
             UE_LOG(LogonAirVRServer, Log, TEXT("onAirVR server starts up on port %d"), Settings->PortSTAP);
@@ -1083,13 +1147,13 @@ void FAirVRServerHMD::ShutdownAirVRServer()
         ENQUEUE_RENDER_COMMAND(onairvr_Shutdown_RenderThread)(
             [](FRHICommandListImmediate& RHICmdList)
             {
-                onairvr_Shutdown_RenderThread();
+                ocs_Shutdown_RenderThread();
             }
         );
         
         FlushRenderingCommands();
 
-        onairvr_Shutdown();
+        ocs_Shutdown();
     }
 }
 
@@ -1106,46 +1170,43 @@ void FAirVRServerHMD::AddAudioSendToMasterSubmix(FWorldContext& WorldContext)
             MasterAudioSendEffectSubmixPreset = NewObject<USubmixEffectSubmixAirVRServerAudioSendPreset>(GetTransientPackage(), TEXT("Master onAirVR Server Audio Send Submix Effect"));
             MasterAudioSendEffectSubmixPreset->AddToRoot();
         }
+
         UAudioMixerBlueprintLibrary::AddMasterSubmixEffect(WorldContext.World(), MasterAudioSendEffectSubmixPreset);
-        // Workaround : do not remove the submix effect explicitly due to a bug in AudioMixerDevice
 
         UE_LOG(LogonAirVRServer, Log, TEXT("add audio send submix effect to master submix for broadcasting"));
     }
 }
 
+void FAirVRServerHMD::RemoveAudioSendFromMasterSubmix(FWorldContext& WorldContext)
+{
+    if (WorldContext.World() == nullptr || MasterAudioSendEffectSubmixPreset == nullptr) {
+        return;
+    }
+
+    FAudioDevice* AudioDevice = WorldContext.World()->GetAudioDevice();
+    if (AudioDevice->IsAudioMixerEnabled()) {
+        UAudioMixerBlueprintLibrary::RemoveMasterSubmixEffect(WorldContext.World(), MasterAudioSendEffectSubmixPreset);
+    }
+}
+
 bool FAirVRServerHMD::IsTrackedDevice(FAirVRInputDeviceType Device) const
 {
-    return Device == FAirVRInputDeviceType::HeadTracker || Device == FAirVRInputDeviceType::RightHandTracker;
+    return Device == FAirVRInputDeviceType::HeadTracker || 
+           Device == FAirVRInputDeviceType::LeftHandTracker ||
+           Device == FAirVRInputDeviceType::RightHandTracker;
 }
 
-const char* FAirVRServerHMD::ParseInputDeviceName(FAirVRInputDeviceType Device) const
+float FAirVRServerHMD::GetAdaptiveFrameRate() const 
 {
-    switch (Device) {
-        case FAirVRInputDeviceType::HeadTracker:
-            return ONAIRVR_INPUT_DEVICE_HEADTRACKER;
-        case FAirVRInputDeviceType::LeftHandTracker:
-            return ONAIRVR_INPUT_DEVICE_LEFT_HAND_TRACKER;
-        case FAirVRInputDeviceType::RightHandTracker:
-            return ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER;
-        case FAirVRInputDeviceType::Controller:
-            return ONAIRVR_INPUT_DEVICE_CONTROLLER;
-        default:
-            break;
-    }
-    check(false);
-    return "";
-}
+    TArray<FAirVRPlayerCameraRigMap::Item> Items;
+    PlayerCameraRigMap.GetItemsOfBoundPlayers(Items);
 
-uint8 FAirVRServerHMD::ParseRaycastResultFeedbackControlID(FAirVRInputDeviceType Device) const
-{
-    switch (Device) {
-        case FAirVRInputDeviceType::HeadTracker:
-            return (uint8)AirVRHeadTrackerKey::RaycastHitResult;
-        case FAirVRInputDeviceType::RightHandTracker:
-            return (uint8)AirVRRightHandTrackerKey::RaycastHitResult;
-        default:
-            break;
+    float Result = GetDefault<UAirVRServerSettings>()->MinFrameRate;
+    for (auto Item : Items) {
+        OCS_CLIENT_CONFIG Config;
+        if (ocs_GetConfig(Item.CameraRig->GetPlayerID(), &Config)) {
+            Result = FMath::Max<float>(Result, Config.frameRate);
+        }
     }
-    check(false);
-    return 0;
+    return Result;
 }

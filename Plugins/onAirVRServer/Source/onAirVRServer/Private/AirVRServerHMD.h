@@ -61,7 +61,6 @@ public:
     bool GetConfig(int32 PlayerControllerID, class UAirVRClientConfig*& Config);
     void GetOrientationAndPosition(int32 PlayerControllerID, FQuat& Orientation, FVector& Position) const;
     void ResetOrientationAndPosition(int32 PlayerControllerID);
-    void AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps);
     void Disconnect(int32 PlayerControllerID);
 
     bool IsInputDeviceAvailable(int32 PlayerControllerID, FAirVRInputDeviceType Device) const;
@@ -75,20 +74,24 @@ public:
 
     void EnableNetworkTimeWarp(int32 PlayerControllerID, bool bEnable);
 
-    bool IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device) const;
-    void EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier);
-    void DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device);
-    void FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    void UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
+    void UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient);
 
     //for onAirVRServerInput
     void GetCurrentPlayers(TArray<int32>& Result);
-    void GetInputTransform(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector& Position, FQuat& Orientation) const;
-    FVector2D GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
+    uint8_t GetInputState(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
+    uint8_t GetInputByteAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
     float GetInputAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
-    float GetInputButtonRaw(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
-    bool GetInputButton(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
-    bool GetInputButtonDown(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
-    bool GetInputButtonUp(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
+    FVector2D GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
+    void GetInputPose(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector& Position, FQuat& Orientation) const;
+    void GetInputTouch2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector2D& Position, uint8& State) const;
+    bool IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
+    bool IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) const;
+    bool GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
+    bool GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) const;
+    bool GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) const;
+    bool GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) const;
+    void PendInputVibration(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, float Frequency, float Amplitude) const;
 
 public:
     // implements IXRTrackingSystem interface
@@ -177,9 +180,9 @@ private:
     void StartupAirVRServer(FWorldContext& WorldContext);
     void ShutdownAirVRServer();
     void AddAudioSendToMasterSubmix(FWorldContext& WorldContext);
+    void RemoveAudioSendFromMasterSubmix(FWorldContext& WorldContext);
     bool IsTrackedDevice(FAirVRInputDeviceType Device) const;
-    const char* ParseInputDeviceName(FAirVRInputDeviceType Device) const;
-    uint8 ParseRaycastResultFeedbackControlID(FAirVRInputDeviceType Device) const;
+    float GetAdaptiveFrameRate() const;
         
 private:
     void* AirVRServerDllHandle;
@@ -196,6 +199,8 @@ private:
     FUELocalPlayerRenderContext LocalPlayerRenderContext;
 
     FVector2D MaxRenderTargetSize;
+    bool bUserUseFixedFrameRate;
+    float UserFixedFrameRate;
 
     FCriticalSection AudioCritSect;
     class USubmixEffectSubmixAirVRServerAudioSendPreset* MasterAudioSendEffectSubmixPreset;

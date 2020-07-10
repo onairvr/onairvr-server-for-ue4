@@ -75,14 +75,6 @@ void UAirVRServerFunctionLibrary::ResetOrientationAndPosition(int32 PlayerContro
     }
 }
 
-void UAirVRServerFunctionLibrary::AdjustBitrate(int32 PlayerControllerID, int32 BitrateInKbps)
-{
-    FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        HMD->AdjustBitrate(PlayerControllerID, BitrateInKbps);
-    }
-}
-
 void UAirVRServerFunctionLibrary::Disconnect(int32 PlayerControllerID)
 {
     FAirVRServerHMD* HMD = GetHMD();
@@ -148,36 +140,19 @@ void UAirVRServerFunctionLibrary::EnableNetworkTimeWarp(int32 PlayerControllerID
     }
 }
 
-bool UAirVRServerFunctionLibrary::IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device)
+void UAirVRServerFunctionLibrary::UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal)
 {
     FAirVRServerHMD* HMD = GetHMD();
     if (HMD) {
-        return HMD->IsDeviceFeedbackEnabled(PlayerControllerID, Device);
-    }
-    return false;
-}
-
-void UAirVRServerFunctionLibrary::EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier)
-{
-    FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        HMD->EnableTrackedDeviceFeedback(PlayerControllerID, Device, CookieTextureFile, DepthScaleMultiplier);
+        HMD->UpdateRaycastHitResult(PlayerControllerID, Device, RayOrigin, HitPosition, HitNormal);
     }
 }
 
-void UAirVRServerFunctionLibrary::DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device)
+void UAirVRServerFunctionLibrary::UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient) 
 {
     FAirVRServerHMD* HMD = GetHMD();
     if (HMD) {
-        HMD->DisableDeviceFeedback(PlayerControllerID, Device);
-    }
-}
-
-void UAirVRServerFunctionLibrary::FeedbackTrackedDevice(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal)
-{
-    FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        HMD->FeedbackTrackedDevice(PlayerControllerID, Device, RayOrigin, HitPosition, HitNormal);
+        HMD->UpdateRenderOnClient(PlayerControllerID, Device, bRenderOnClient);
     }
 }
 
@@ -189,64 +164,86 @@ void UAirVRServerFunctionLibrary::GetCurrentPlayers(TArray<int32>& Result)
     }
 }
 
-void UAirVRServerFunctionLibrary::GetInputTransform(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 ControlID, FVector& Position, FQuat& Orientation)
+uint8 UAirVRServerFunctionLibrary::GetInputState(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) 
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    return HMD ? HMD->GetInputState(PlayerControllerID, Device, Control) : 0;
+}
+
+uint8 UAirVRServerFunctionLibrary::GetInputByteAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) 
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    return HMD ? HMD->GetInputByteAxis(PlayerControllerID, Device, Control) : 0;
+}
+
+float UAirVRServerFunctionLibrary::GetInputAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) 
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    return HMD ? HMD->GetInputAxis(PlayerControllerID, Device, Control) : 0;
+}
+
+FVector2D UAirVRServerFunctionLibrary::GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) 
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    return HMD ? HMD->GetInputAxis2D(PlayerControllerID, Device, Control) : FVector2D::ZeroVector;
+}
+
+void UAirVRServerFunctionLibrary::GetInputPose(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector& Position, FQuat& Orientation)
 {
     FAirVRServerHMD* HMD = GetHMD();
     if (HMD) {
-        HMD->GetInputTransform(PlayerControllerID, Device, ControlID, Position, Orientation);
+        HMD->GetInputPose(PlayerControllerID, Device, Control, Position, Orientation);
     }
 }
 
-FVector2D UAirVRServerFunctionLibrary::GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control)
+void UAirVRServerFunctionLibrary::GetInputTouch2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector2D& Position, uint8& State) 
 {
     FAirVRServerHMD* HMD = GetHMD();
     if (HMD) {
-        return HMD->GetInputAxis2D(PlayerControllerID, Device, Control);
+        HMD->GetInputTouch2D(PlayerControllerID, Device, Control, Position, State);
     }
-    return FVector2D::ZeroVector;
 }
 
-float UAirVRServerFunctionLibrary::GetInputAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control)
+bool UAirVRServerFunctionLibrary::IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) 
 {
     FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        return HMD->GetInputAxis(PlayerControllerID, Device, Control);
-    }
-    return 0.0f;
+    return HMD ? HMD->IsInputActive(PlayerControllerID, Device, Control) : false;
 }
 
-float UAirVRServerFunctionLibrary::GetInputButtonRaw(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control)
+bool UAirVRServerFunctionLibrary::IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) 
 {
     FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        return HMD->GetInputButtonRaw(PlayerControllerID, Device, Control);
-    }
-    return 0.0f;
+    return HMD ? HMD->IsInputActive(PlayerControllerID, Device, Control, Direction) : false;
 }
 
-bool UAirVRServerFunctionLibrary::GetInputButton(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control)
+bool UAirVRServerFunctionLibrary::GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) 
 {
     FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        return HMD->GetInputButton(PlayerControllerID, Device, Control);
-    }
-    return false;
+    return HMD ? HMD->GetInputActivated(PlayerControllerID, Device, Control) : false;
 }
 
-bool UAirVRServerFunctionLibrary::GetInputButtonDown(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control)
+bool UAirVRServerFunctionLibrary::GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) 
 {
     FAirVRServerHMD* HMD = GetHMD();
-    if (HMD) {
-        return HMD->GetInputButtonDown(PlayerControllerID, Device, Control);
-    }
-    return false;
+    return HMD ? HMD->GetInputActivated(PlayerControllerID, Device, Control, Direction) : false;
 }
 
-bool UAirVRServerFunctionLibrary::GetInputButtonUp(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control)
+bool UAirVRServerFunctionLibrary::GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control) 
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    return HMD ? HMD->GetInputDeactivated(PlayerControllerID, Device, Control) : false;
+}
+
+bool UAirVRServerFunctionLibrary::GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction) 
+{
+    FAirVRServerHMD* HMD = GetHMD();
+    return HMD ? HMD->GetInputDeactivated(PlayerControllerID, Device, Control, Direction) : false;
+}
+
+void UAirVRServerFunctionLibrary::PendInputVibration(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, float Frequency, float Amplitude) 
 {
     FAirVRServerHMD* HMD = GetHMD();
     if (HMD) {
-        return HMD->GetInputButtonUp(PlayerControllerID, Device, Control);
+        HMD->PendInputVibration(PlayerControllerID, Device, Control, Frequency, Amplitude);
     }
-    return false;
 }

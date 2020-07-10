@@ -26,8 +26,7 @@ public:
     virtual void AirVREventMediaStreamEncodeVideoFrame(int PlayerID) {}
     virtual void AirVREventMediaStreamStopped(int PlayerID) {}
     virtual void AirVREventMediaStreamCleanedUp(int PlayerID) {}
-    virtual void AirVREventInputStreamRemoteInputDeviceRegistered(int PlayerID, const FString& DeviceName, uint8 DeviceID) {}
-    virtual void AirVREventInputStreamRemoteInputDeviceUnregistered(int PlayerID, uint8 DeviceID) {}
+    virtual void AirVREventMediaStreamSetCameraProjection(int PlayerID, const float* Projection) {}
 };
 
 class FAirVREventDispatcher
@@ -41,7 +40,6 @@ private:
     void DispatchSessionMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message);
     void DispatchPlayerMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message);
     void DispatchMediaStreamMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message);
-    void DispatchInputStreamMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message);
     
     void NotifySessionConnected(int PlayerID) const;
     void NotifySessionDisconnected(int PlayerID) const;
@@ -55,8 +53,7 @@ private:
     void NotifyMediaStreamEncodeVideoFrame(int PlayerID) const;
     void NotifyMediaStreamStopped(int PlayerID) const;
     void NotifyMediaStreamCleanedUp(int PlayerID) const;
-    void NotifyInputStreamRemoteInputDeviceRegistered(int PlayerID, const FString& DeviceName, uint8 DeviceID) const;
-    void NotifyInputStreamRemoteInputDeviceUnregistered(int PlayerID, uint8 DeviceID) const;
+    void NotifyMediaStreamSetCameraProjection(int PlayerID, const float* Projection) const;
 
 private:
     TArray<IAirVREventListener*> Listeners;

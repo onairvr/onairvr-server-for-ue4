@@ -10,6 +10,7 @@
 #include "AirVRPlayerCameraRigMap.h"
 #include "AirVRServerPrivate.h"
 
+#include "Engine/LocalPlayer.h"
 #include "AirVRCameraRig.h"
 
 int32 FAirVRPlayerCameraRigMap::GetPlayer(class FAirVRCameraRig* CameraRig) const
@@ -84,10 +85,10 @@ void FAirVRPlayerCameraRigMap::OnStartGameFrame(FWorldContext& WorldContext)
     UpdatePlayerLists(WorldContext);
 }
 
-void FAirVRPlayerCameraRigMap::UpdateCameraRigs()
+void FAirVRPlayerCameraRigMap::UpdateCameraRigs(FWorldContext& WorldContext)
 {
     for (auto& It : BoundPlayers) {
-        It.Value.CameraRig->Update();
+        It.Value.CameraRig->Update(WorldContext);
     }
 }
 
@@ -171,8 +172,14 @@ void FAirVRPlayerCameraRigMap::UpdateViewports(FVector2D ScreenSize, ESplitScree
                 Item.ScreenViewport = FIntRect();
             }
             Item.CameraRig->UpdateViewInfo(Item.ScreenViewport, Item.bEncode, Item.bIsStereoscopic);
-            Item.RenderViewport = Item.CameraRig->GetVideoWidth() > 0 && Item.CameraRig->GetVideoHeight() ?
-                                      FIntRect(Min, Min + FIntPoint(Item.CameraRig->GetVideoWidth(), Item.CameraRig->GetVideoHeight())) : FIntRect();
+            if (Item.CameraRig->GetVideoWidth() > 0 && Item.CameraRig->GetVideoHeight()) {
+                Item.RenderViewport = Item.bIsStereoscopic ?
+                    FIntRect(Min, Min + FIntPoint(Item.CameraRig->GetVideoWidth(), Item.CameraRig->GetVideoHeight())) :
+                    FIntRect(Min, Min + FIntPoint(Item.CameraRig->GetVideoWidth() * 2, Item.CameraRig->GetVideoHeight()));
+            }
+            else {
+                Item.RenderViewport = FIntRect();
+            }
             
             if (UnboundPlayers.Contains(Pair.Key)) {
                 UnboundPlayers.Add(Pair.Key, Item);

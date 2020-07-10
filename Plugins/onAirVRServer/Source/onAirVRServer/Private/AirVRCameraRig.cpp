@@ -13,7 +13,13 @@
 #include "AirVRServerHMD.h"
 
 FAirVRCameraRig::FAirVRCameraRig(class FAirVREventDispatcher* InEventDispatcher)
-    : PlayerID(-1), EventDispatcher(InEventDispatcher), LastTrackingTimeStamp(0.0), InputStream(this), bIsActivated(false), bEncodeRequested(false)
+    : PlayerID(-1), 
+      EventDispatcher(InEventDispatcher), 
+      LastTrackingTimeStamp(0.0), 
+      InputStream(this), 
+      bIsActivated(false), 
+      bEncodeRequested(false),
+      bStereoscopic(false)
 {
     TrackingModel = FAirVRTrackingModel::CreateTrackingModel(FAirVRTrackingModelType::Head, this);
     EventDispatcher->AddListener(this);
@@ -42,12 +48,17 @@ void FAirVRCameraRig::UpdateExternalTrackerLocationAndRotation(const FVector& Lo
     TrackingModel->UpdateExternalTrackerLocationAndRotation(Location, Rotation);
 }
 
+FMatrix FAirVRCameraRig::GetCameraProjectionMatrix() const 
+{
+    return GetLeftEyeProjectionMatrix();
+}
+
 FMatrix FAirVRCameraRig::GetLeftEyeProjectionMatrix() const
 {
-    return MakeProjectionMatrix(LeftEyeCameraNearPlane[0] * GNearClippingPlane,
-                                LeftEyeCameraNearPlane[1] * GNearClippingPlane,
-                                LeftEyeCameraNearPlane[2] * GNearClippingPlane,
-                                LeftEyeCameraNearPlane[3] * GNearClippingPlane,
+    return MakeProjectionMatrix(CameraProjection[0] * GNearClippingPlane,
+                                CameraProjection[1] * GNearClippingPlane,
+                                CameraProjection[2] * GNearClippingPlane,
+                                CameraProjection[3] * GNearClippingPlane,
                                 GNearClippingPlane);
 }
 
@@ -106,34 +117,35 @@ void FAirVRCameraRig::UpdateViewInfo(const FIntRect& ScreenViewport, bool& OutSh
         OutShouldEncode = bEncodeRequested;
         bEncodeRequested = false;
 
-        OutIsStereoscopic = true;
+        OutIsStereoscopic = bStereoscopic;
     }
     else {
         VideoWidth = ScreenViewport.Width();
         VideoHeight = ScreenViewport.Height();
 
         float AspectRatio = ScreenViewport.Width() > 0 && ScreenViewport.Height() > 0 ? (float)VideoWidth / VideoHeight : 1.0f;
-        LeftEyeCameraNearPlane[0] = 1.0f * AspectRatio;
-        LeftEyeCameraNearPlane[1] = 1.0f;
-        LeftEyeCameraNearPlane[2] = -1.0f * AspectRatio;
-        LeftEyeCameraNearPlane[3] = -1.0f;
+        CameraProjection[0] = -1.0f * AspectRatio;
+        CameraProjection[1] = 1.0f;
+        CameraProjection[2] = 1.0f * AspectRatio;
+        CameraProjection[3] = -1.0f;
 
         OutShouldEncode = false;
         OutIsStereoscopic = false;
     }
 }
 
-void FAirVRCameraRig::BindPlayer(int InPlayerID, const ONAIRVR_CLIENT_CONFIG& Config)
+void FAirVRCameraRig::BindPlayer(int InPlayerID, const OCS_CLIENT_CONFIG& Config)
 {
     PlayerID = InPlayerID;
 
+    bStereoscopic = Config.clientType == OCS_CLIENT_STEREOSCOPIC;
     VideoWidth = Config.videoWidth;
     VideoHeight = Config.videoHeight;
     for (int i = 0; i < 4; i++) {
-        LeftEyeCameraNearPlane[i] = Config.leftEyeCameraNearPlane[i];
+        CameraProjection[i] = Config.cameraProjection[i];
     }
 
-	LastTrackingTimeStamp = 0.0;
+	LastTrackingTimeStamp = 0;
 }
 
 void FAirVRCameraRig::UnbindPlayer()
@@ -141,19 +153,24 @@ void FAirVRCameraRig::UnbindPlayer()
     PlayerID = -1;
 }
 
-void FAirVRCameraRig::Update()
+void FAirVRCameraRig::Update(FWorldContext& WorldContext)
 {
     if (IsBound()) {
-        InputStream.Update();
+        InputStream.Update(WorldContext);
 
-        ONAIRVR_CLIENT_CONFIG Config;
-        onairvr_GetConfig(PlayerID, &Config);
+        OCS_CLIENT_CONFIG Config;
+        ocs_GetConfig(PlayerID, &Config);
 
-        ONAIRVR_VECTOR3D Position;
-        ONAIRVR_QUATERNION Orientation;
-        InputStream.GetTransform(ONAIRVR_INPUT_DEVICE_HEADTRACKER, (uint8)AirVRHeadTrackerKey::Transform, LastTrackingTimeStamp, &Position, &Orientation);
+        LastTrackingTimeStamp = ocs_GetInputRecvTimestamp(PlayerID);
 
-        TrackingModel->UpdateEyePose(Config, Position, Orientation);
+        OCS_VECTOR3D Position;
+        OCS_QUATERNION Orientation;
+        if (InputStream.GetPose(AirVRInputDeviceID::HeadTracker,
+                                (uint8)AirVRHeadTrackerControl::Pose,
+                                &Position,
+                                &Orientation)) {
+            TrackingModel->UpdateEyePose(Config, Position, Orientation);
+        }
     }
 }
 
@@ -169,14 +186,14 @@ void FAirVRCameraRig::Reset()
 void FAirVRCameraRig::EnableNetworkTimeWarp(bool bEnable)
 {
     if (IsBound()) {
-        onairvr_EnableNetworkTimeWarp(PlayerID, bEnable);
+        ocs_EnableNetworkTimeWarp(PlayerID, bEnable);
     }
 }
 
 void FAirVRCameraRig::AirVRTrackingModelContextRecenterCameraRigPose()
 {
     if (IsBound()) {
-        onairvr_RecenterPose(PlayerID);
+        ocs_RecenterPose(PlayerID);
     }
 }
 
@@ -185,10 +202,10 @@ void FAirVRCameraRig::AirVREventMediaStreamInitialized(int InPlayerID)
     if (PlayerID == InPlayerID) {
         int InRenderPlayerID = PlayerID;
 
-        ENQUEUE_RENDER_COMMAND(onairvr_InitStreams_RenderThread)(
-            [InRenderPlayerID](FRHICommandListImmediate& RHICmdList) 
+        ENQUEUE_RENDER_COMMAND(ocs_InitStreams_RenderThread)(
+            [InRenderPlayerID](FRHICommandListImmediate& RHICmdList)
             {
-                onairvr_InitStreams_RenderThread(InRenderPlayerID);
+                ocs_InitStreams_RenderThread(InRenderPlayerID);
             }
         );
 
@@ -225,10 +242,10 @@ void FAirVRCameraRig::AirVREventMediaStreamStopped(int InPlayerID)
         assert(TrackingModel);
         TrackingModel->StopTracking();
 
-        ENQUEUE_RENDER_COMMAND(onairvr_ResetStreams_RenderThread)(
+        ENQUEUE_RENDER_COMMAND(ocs_ResetStreams_RenderThread)(
             [InPlayerID](FRHICommandListImmediate& RHICmdList)
             {
-                onairvr_ResetStreams_RenderThread(InPlayerID);
+                ocs_ResetStreams_RenderThread(InPlayerID);
             }
         );
         FlushRenderingCommands();
@@ -242,34 +259,29 @@ void FAirVRCameraRig::AirVREventMediaStreamCleanedUp(int InPlayerID)
     if (PlayerID == InPlayerID) {
         InputStream.Cleanup();
 
-        ENQUEUE_RENDER_COMMAND(onairvr_CleanupStreams_RenderThread)(
+        ENQUEUE_RENDER_COMMAND(ocs_CleanupStreams_RenderThread)(
             [InPlayerID](FRHICommandListImmediate& RHICmdList)
             {
-                onairvr_CleanupStreams_RenderThread(InPlayerID);
+                ocs_CleanupStreams_RenderThread(InPlayerID);
             }
         );
         FlushRenderingCommands();
     }
 }
 
-void FAirVRCameraRig::AirVREventInputStreamRemoteInputDeviceRegistered(int InPlayerID, const FString& DeviceName, uint8 DeviceID)
+void FAirVRCameraRig::AirVREventMediaStreamSetCameraProjection(int InPlayerID, const float* Projection) 
 {
     if (PlayerID == InPlayerID) {
-        InputStream.HandleRemoteInputDeviceRegistered(DeviceName, DeviceID);
-    }
-}
-
-void FAirVRCameraRig::AirVREventInputStreamRemoteInputDeviceUnregistered(int InPlayerID, uint8 DeviceID)
-{
-    if (PlayerID == InPlayerID) {
-        InputStream.HandleRemoteInputDeviceUnregistered(DeviceID);
+        for (int i = 0; i < 4; i++) {
+            CameraProjection[i] = Projection[i];
+        }
     }
 }
 
 FMatrix FAirVRCameraRig::MakeProjectionMatrix(float Left, float Top, float Right, float Bottom, float Near) const
 { 
-    return FMatrix(FPlane(   2.0f * Near / (Left - Right),                            0.0f, 0.0f, 0.0f),
-                   FPlane(                           0.0f,    2.0f * Near / (Top - Bottom), 0.0f, 0.0f),
-                   FPlane((Left + Right) / (Left - Right), (Top + Bottom) / (Top - Bottom), 0.0f, 1.0f),
+    return FMatrix(FPlane(   2.0f * Near / (Right - Left),                            0.0f, 0.0f, 0.0f),
+                   FPlane(                           0.0f,   -2.0f * Near / (Bottom - Top), 0.0f, 0.0f),
+                   FPlane((Left + Right) / (Left - Right), (Bottom + Top) / (Bottom - Top), 0.0f, 1.0f),
                    FPlane(                           0.0f,                            0.0f, Near, 0.0f));
 }
