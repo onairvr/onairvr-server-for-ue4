@@ -124,9 +124,9 @@ void FAirVRCameraRig::UpdateViewInfo(const FIntRect& ScreenViewport, bool& OutSh
         VideoHeight = ScreenViewport.Height();
 
         float AspectRatio = ScreenViewport.Width() > 0 && ScreenViewport.Height() > 0 ? (float)VideoWidth / VideoHeight : 1.0f;
-        CameraProjection[0] = 1.0f * AspectRatio;
+        CameraProjection[0] = -1.0f * AspectRatio;
         CameraProjection[1] = 1.0f;
-        CameraProjection[2] = -1.0f * AspectRatio;
+        CameraProjection[2] = 1.0f * AspectRatio;
         CameraProjection[3] = -1.0f;
 
         OutShouldEncode = false;
@@ -165,12 +165,12 @@ void FAirVRCameraRig::Update(FWorldContext& WorldContext)
 
         OCS_VECTOR3D Position;
         OCS_QUATERNION Orientation;
-        InputStream.GetTransform(ONAIRVR_INPUT_DEVICE_HEADTRACKER, 
-                                 (uint8)AirVRHeadTrackerKey::Transform,  
-                                 &Position, 
-                                 &Orientation);
-
-        TrackingModel->UpdateEyePose(Config, Position, Orientation);
+        if (InputStream.GetPose(AirVRInputDeviceID::HeadTracker,
+                                (uint8)AirVRHeadTrackerControl::Pose,
+                                &Position,
+                                &Orientation)) {
+            TrackingModel->UpdateEyePose(Config, Position, Orientation);
+        }
     }
 }
 
@@ -281,24 +281,10 @@ void FAirVRCameraRig::AirVREventMediaStreamSetCameraProjection(int InPlayerID, c
     }
 }
 
-void FAirVRCameraRig::AirVREventInputStreamRemoteInputDeviceRegistered(int InPlayerID, const FString& DeviceName, uint8 DeviceID)
-{
-    if (PlayerID == InPlayerID) {
-        InputStream.HandleRemoteInputDeviceRegistered(DeviceName, DeviceID);
-    }
-}
-
-void FAirVRCameraRig::AirVREventInputStreamRemoteInputDeviceUnregistered(int InPlayerID, uint8 DeviceID)
-{
-    if (PlayerID == InPlayerID) {
-        InputStream.HandleRemoteInputDeviceUnregistered(DeviceID);
-    }
-}
-
 FMatrix FAirVRCameraRig::MakeProjectionMatrix(float Left, float Top, float Right, float Bottom, float Near) const
 { 
-    return FMatrix(FPlane(   2.0f * Near / (Left - Right),                            0.0f, 0.0f, 0.0f),
-                   FPlane(                           0.0f,    2.0f * Near / (Top - Bottom), 0.0f, 0.0f),
-                   FPlane((Left + Right) / (Left - Right), (Top + Bottom) / (Top - Bottom), 0.0f, 1.0f),
+    return FMatrix(FPlane(   2.0f * Near / (Right - Left),                            0.0f, 0.0f, 0.0f),
+                   FPlane(                           0.0f,   -2.0f * Near / (Bottom - Top), 0.0f, 0.0f),
+                   FPlane((Left + Right) / (Left - Right), (Bottom + Top) / (Bottom - Top), 0.0f, 1.0f),
                    FPlane(                           0.0f,                            0.0f, Near, 0.0f));
 }

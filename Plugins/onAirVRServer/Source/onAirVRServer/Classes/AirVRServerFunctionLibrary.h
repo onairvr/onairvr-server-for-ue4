@@ -10,15 +10,22 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include "onairvr_input.h"
+#include "ocs_server.h"
+#include "Windows/HideWindowsPlatformTypes.h"
+
 #include "AirVRServerFunctionLibrary.generated.h"
 
 UENUM(BlueprintType)
 enum class FAirVRInputDeviceType : uint8 
 {
-    HeadTracker,
-    LeftHandTracker,
-    RightHandTracker,
-    Controller
+    HeadTracker         = (uint8)AirVRInputDeviceID::HeadTracker,
+    LeftHandTracker     = (uint8)AirVRInputDeviceID::LeftHandTracker,
+    RightHandTracker    = (uint8)AirVRInputDeviceID::RightHandTracker,
+    Controller          = (uint8)AirVRInputDeviceID::Controller,
+    TouchScreen         = (uint8)AirVRInputDeviceID::TouchScreen
 };
 
 UENUM(BlueprintType)
@@ -70,21 +77,23 @@ public:
 
     static void EnableNetworkTimeWarp(int32 PlayerControllerID, bool bEnable);
 
-    // for tracked device feedback
-    static bool IsDeviceFeedbackEnabled(int32 PlayerControllerID, FAirVRInputDeviceType Device);
-    static void EnableTrackedDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device, FString CookieTextureFile, float DepthScaleMultiplier);
-    static void DisableDeviceFeedback(int32 PlayerControllerID, FAirVRInputDeviceType Device);
-    static void EnableRaycastHit(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bEnable);
+    // for motion controller feedback
     static void UpdateRaycastHitResult(int32 PlayerControllerID, FAirVRInputDeviceType Device, const FVector& RayOrigin, const FVector& HitPosition, const FVector& HitNormal);
     static void UpdateRenderOnClient(int32 PlayerControllerID, FAirVRInputDeviceType Device, bool bRenderOnClient);
 
     // internal interfaces for onAirVRServerInput
     static void GetCurrentPlayers(TArray<int32>& Result);
-    static void GetInputTransform(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector& Position, FQuat& Orientation);
-    static FVector2D GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
+    static uint8 GetInputState(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
+    static uint8 GetInputByteAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
     static float GetInputAxis(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
-    static float GetInputButtonRaw(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
-    static bool GetInputButton(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
-    static bool GetInputButtonDown(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
-    static bool GetInputButtonUp(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
+    static FVector2D GetInputAxis2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
+    static void GetInputPose(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector& Position, FQuat& Orientation);
+    static void GetInputTouch2D(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, FVector2D& Position, uint8& State);
+    static bool IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
+    static bool IsInputActive(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction);
+    static bool GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
+    static bool GetInputActivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction);
+    static bool GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control);
+    static bool GetInputDeactivated(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, OCS_INPUT_DIRECTION Direction);
+    static void PendInputVibration(int32 PlayerControllerID, FAirVRInputDeviceType Device, uint8 Control, float Frequency, float Amplitude);
 };

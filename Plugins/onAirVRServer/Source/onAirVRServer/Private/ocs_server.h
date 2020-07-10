@@ -1,6 +1,6 @@
 /***********************************************************
 
-  Copyright (c) 2017-2018 Clicked, Inc.
+  Copyright (c) 2017-present Clicked, Inc.
 
   Licensed under the MIT license found in the LICENSE file 
   in the Docs folder of the distributed package.
@@ -44,13 +44,21 @@ typedef enum
     OCS_CLIENT_STEREOSCOPIC
 } OCS_CLIENT_TYPE;
 
-typedef enum
+typedef enum 
 {
-    OCS_INPUT_SENDING_POLICY_NEVER = 0,
-    OCS_INPUT_SENDING_POLICY_ALWAYS,
-    OCS_INPUT_SENDING_POLICY_NONZERO_ALWAYS_ZERO_ONCE,
-    OCS_INPUT_SENDING_POLICY_ON_CHANGE
-} OCS_INPUT_SENDING_POLICY;
+    OCS_INPUT_DIRECTION_UP = 0,
+    OCS_INPUT_DIRECTION_DOWN,
+    OCS_INPUT_DIRECTION_LEFT,
+    OCS_INPUT_DIRECTION_RIGHT
+} OCS_INPUT_DIRECTION;
+
+//typedef enum
+//{
+//    OCS_INPUT_SENDING_POLICY_NEVER = 0,
+//    OCS_INPUT_SENDING_POLICY_ALWAYS,
+//    OCS_INPUT_SENDING_POLICY_NONZERO_ALWAYS_ZERO_ONCE,
+//    OCS_INPUT_SENDING_POLICY_ON_CHANGE
+//} OCS_INPUT_SENDING_POLICY;
 
 typedef struct _OCS_VECTOR3D
 {
@@ -156,15 +164,28 @@ extern "C"
     void OCS_API ocs_AcceptPlayer(int playerID);
     void OCS_API ocs_Update(float deltaTime);
 
-    uint8_t OCS_API ocs_RegisterInputSender(int playerID, const char* name, const OCS_INPUT_SENDER_ARGS* args = nullptr);
-    void OCS_API ocs_UnregisterInputSender(int playerID, uint8_t deviceID);
+    //uint8_t OCS_API ocs_RegisterInputSender(int playerID, const char* name, const OCS_INPUT_SENDER_ARGS* args = nullptr);
+    //void OCS_API ocs_UnregisterInputSender(int playerID, uint8_t deviceID);
     int64_t OCS_API ocs_GetInputRecvTimestamp(int playerID);
+    bool OCS_API ocs_GetInputState(int playerID, uint8_t device, uint8_t control, uint8_t* state);
+    bool OCS_API ocs_GetInputByteAxis(int playerID, uint8_t device, uint8_t control, uint8_t* axis);
+    bool OCS_API ocs_GetInputAxis(int playerID, uint8_t device, uint8_t control, float* axis);
+    bool OCS_API ocs_GetInputAxis2D(int playerID, uint8_t device, uint8_t control, OCS_VECTOR2D* axis2D);
+    bool OCS_API ocs_GetInputPose(int playerID, uint8_t device, uint8_t control, OCS_VECTOR3D* position, OCS_QUATERNION* rotation);
+    bool OCS_API ocs_GetInputTouch2D(int playerID, uint8_t device, uint8_t control, OCS_VECTOR2D* position, uint8_t* state);
+    bool OCS_API ocs_IsInputActive(int playerID, uint8_t device, uint8_t control);
+    bool OCS_API ocs_IsInputDirectionActive(int playerID, uint8_t device, uint8_t control, OCS_INPUT_DIRECTION direction);
+    bool OCS_API ocs_GetInputActivated(int playerID, uint8_t device, uint8_t control);
+    bool OCS_API ocs_GetInputDirectionActivated(int playerID, uint8_t device, uint8_t control, OCS_INPUT_DIRECTION direction);
+    bool OCS_API ocs_GetInputDeactivated(int playerID, uint8_t device, uint8_t control);
+    bool OCS_API ocs_GetInputDirectionDeactivated(int playerID, uint8_t device, uint8_t control, OCS_INPUT_DIRECTION direction);
     void OCS_API ocs_BeginPendInput(int playerID, int64_t& timestamp);
-    void OCS_API ocs_PendInputFloat(int playerID, uint8_t deviceID, uint8_t controlID, const float* values, int length, OCS_INPUT_SENDING_POLICY policy);
-    void OCS_API ocs_PendInputByte(int playerID, uint8_t deviceID, uint8_t controlID, const uint8_t* values, int length, OCS_INPUT_SENDING_POLICY policy);
-    bool OCS_API ocs_GetInputFloat(int playerID, uint8_t deviceID, uint8_t controlID, float* values, int length);
+    void OCS_API ocs_PendInputState(int playerID, uint8_t device, uint8_t control, uint8_t state);
+    void OCS_API ocs_PendInputRaycastHit(int playerID, uint8_t device, uint8_t control, const OCS_VECTOR3D& origin, const OCS_VECTOR3D& hitPosition, const OCS_VECTOR3D& hitNormal);
+    void OCS_API ocs_PendInputVibration(int playerID, uint8_t device, uint8_t control, float frequency, float amplitude);
     void OCS_API ocs_SendPendingInputs(int playerID, int64_t timestamp);
-    void OCS_API ocs_ResetInput(int playerID);
+    void OCS_API ocs_ClearInput(int playerID);
+    void OCS_API ocs_UpdateInputFrame(int playerID);
 
 #ifdef __cplusplus
 }

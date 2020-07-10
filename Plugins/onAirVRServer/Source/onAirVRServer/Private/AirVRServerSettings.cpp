@@ -16,7 +16,7 @@
 UAirVRServerSettings::UAirVRServerSettings()
     : LicenseFilePath(TEXT("onairvr.license")),
       PortSTAP(9090),
-      AdaptiveFrameRate(true),
+      AdaptiveFrameRate(false),
       MinFrameRate(10.0f),
       DisableAudio(false),
       PortAMP(0),

@@ -9,55 +9,44 @@
 
 #pragma once
 
-#define ONAIRVR_INPUT_DEVICE_HEADTRACKER            "HeadTracker"
-#define ONAIRVR_INPUT_DEVICE_LEFT_HAND_TRACKER      "LeftHandTracker"
-#define ONAIRVR_INPUT_DEVICE_RIGHT_HAND_TRACKER     "RightHandTracker"
-#define ONAIRVR_INPUT_DEVICE_CONTROLLER             "Controller"
+#include <cstdint>
 
-enum class AirVRHeadTrackerKey
+enum class AirVRInputDeviceID : uint8_t
 {
-    Transform = 0,
-    RaycastHitResult,
+    HeadTracker         = 0,
+    LeftHandTracker     = 1,
+    RightHandTracker    = 2,
+    Controller          = 3,
+    TouchScreen         = 4
+};
 
-    // ADD ADDITIONAL KEYS HERE
+enum class AirVRHeadTrackerControl : uint8_t
+{
+    Pose = 0,
 
     Max
 };
 
-enum class AirVRLeftHandTrackerKey 
+enum class AirVRHandTrackerControl : uint8_t
 {
-    Transform = 0,
-    RaycastHitResult,
-    Vibrate,
-    RenderOnClient,
-
-    // ADD ADDITIONAL KEYS HERE
+    Status = 0,
+    Pose,
 
     Max
 };
 
-enum class AirVRRightHandTrackerKey 
+enum class AirVRHandTrackerFeedbackControl : uint8_t 
 {
-    Transform = 0,
+    RenderOnClient = 0,
     RaycastHitResult,
-    Vibrate,
-    RenderOnClient,
-
-    // ADD ADDITIONAL KEYS HERE
+    Vibration,
 
     Max
 };
 
-enum class AirVRControllerKey {
-    Touchpad = 0,
-
-    ButtonTouchpad,
-    ButtonUp,
-    ButtonDown,
-    ButtonLeft,
-    ButtonRight,
-
-    Axis2DLThumbstick,
+enum class AirVRControllerControl : uint8_t 
+{
+    Axis2DLThumbstick = 0,
     Axis2DRThumbstick,
     AxisLIndexTrigger,
     AxisRIndexTrigger,
@@ -71,33 +60,12 @@ enum class AirVRControllerKey {
     ButtonBack,
     ButtonLThumbstick,
     ButtonRThumbstick,
-    ButtonLShoulder,
-    ButtonRShoulder,
-
-    // ADD ADDITIONAL KEYS HERE
-
-    Axis2DTouchpad,
-    TouchTouchpad,
-    ButtonLIndexTrigger,
-    ButtonRIndexTrigger,
-    ButtonLHandTrigger,
-    ButtonRHandTrigger,
-    ButtonLThumbstickUp,
-    ButtonLThumbstickDown,
-    ButtonLThumbstickLeft,
-    ButtonLThumbstickRight,
-    ButtonRThumbstickUp,
-    ButtonRThumbstickDown,
-    ButtonRThumbstickLeft,
-    ButtonRThumbstickRight,
 
     Max
 };
 
-enum class AirVRHapticVibration 
+enum class AirVRTouchScreenControl : uint8_t 
 {
-    None = 0,
-
-    OneTime_Short,
-    OneTime_Long
+    TouchIndexStart = 0,
+    TouchIndexEnd = 9
 };

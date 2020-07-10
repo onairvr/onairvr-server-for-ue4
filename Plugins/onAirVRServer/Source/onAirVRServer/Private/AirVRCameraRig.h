@@ -63,8 +63,6 @@ public:
     virtual void AirVREventMediaStreamStopped(int InPlayerID) override;
     virtual void AirVREventMediaStreamCleanedUp(int InPlayerID) override;
     virtual void AirVREventMediaStreamSetCameraProjection(int InPlayerID, const float* Projection) override;
-    virtual void AirVREventInputStreamRemoteInputDeviceRegistered(int InPlayerID, const FString& DeviceName, uint8 DeviceID) override;
-    virtual void AirVREventInputStreamRemoteInputDeviceUnregistered(int InPlayerID, uint8 DeviceID) override;
 
 private:
     FMatrix MakeProjectionMatrix(float Left, float Top, float Right, float Bottom, float Near) const;

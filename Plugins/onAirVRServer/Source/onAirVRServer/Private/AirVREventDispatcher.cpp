@@ -11,9 +11,6 @@
 #include "AirVRServerPrivate.h"
 
 #include "Misc/Base64.h"
-#include "Windows/AllowWindowsPlatformTypes.h"
-#include "ocs_server.h"
-#include "Windows/HideWindowsPlatformTypes.h"
 
 static const char* KeyType              = "Type";
 static const char* TypeEvent            = "Event";
@@ -80,9 +77,6 @@ void FAirVREventDispatcher::DispatchMessages()
                 else if (From.Equals(FromMediaStream)) {
                     DispatchMediaStreamMessage(SrcPlayerID, Parsed);
                 }
-                else if (From.Equals(FromInputStream)) {
-                    DispatchInputStreamMessage(SrcPlayerID, Parsed);
-                }
             }
         }
         ocs_RemoveFirstMessage();
@@ -147,21 +141,6 @@ void FAirVREventDispatcher::DispatchMediaStreamMessage(int PlayerID, const TShar
         }
 
         NotifyMediaStreamSetCameraProjection(PlayerID, Projection);
-    }
-}
-
-void FAirVREventDispatcher::DispatchInputStreamMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message)
-{
-    if (Message->GetStringField(KeyName).Equals(NameRemoteInputDeviceRegistered)) {
-        check(Message->HasField(KeyDeviceName));
-        check(Message->HasField(KeyDeviceID));
-
-        NotifyInputStreamRemoteInputDeviceRegistered(PlayerID, Message->GetStringField(KeyDeviceName), static_cast<uint8>(Message->GetIntegerField(KeyDeviceID)));
-    }
-    else if (Message->GetStringField(KeyName).Equals(NameRemoteInputDeviceUnregistered)) {
-        check(Message->HasField(KeyDeviceID));
-
-        NotifyInputStreamRemoteInputDeviceUnregistered(PlayerID, static_cast<uint8>(Message->GetIntegerField(KeyDeviceID)));
     }
 }
 
@@ -253,19 +232,5 @@ void FAirVREventDispatcher::NotifyMediaStreamSetCameraProjection(int PlayerID, c
 {
     for (auto Listener : Listeners) {
         Listener->AirVREventMediaStreamSetCameraProjection(PlayerID, Projection);
-    }
-}
-
-void FAirVREventDispatcher::NotifyInputStreamRemoteInputDeviceRegistered(int PlayerID, const FString& DeviceName, uint8 DeviceID) const
-{
-    for (auto Listener : Listeners) {
-        Listener->AirVREventInputStreamRemoteInputDeviceRegistered(PlayerID, DeviceName, DeviceID);
-    }
-}
-
-void FAirVREventDispatcher::NotifyInputStreamRemoteInputDeviceUnregistered(int PlayerID, uint8 DeviceID) const
-{
-    for (auto Listener : Listeners) {
-        Listener->AirVREventInputStreamRemoteInputDeviceUnregistered(PlayerID, DeviceID);
     }
 }

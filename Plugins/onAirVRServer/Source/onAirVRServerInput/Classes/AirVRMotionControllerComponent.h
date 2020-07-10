@@ -14,14 +14,8 @@ public:
     UAirVRMotionControllerComponent();
 
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Motion Controller")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MotionController")
     bool bRenderOnClient;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visualization")
-    FString PointerCookieTextureFile;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visualization")
-    float PointerCookieDepthScaleMultiplier;
 
 public:
     // overrides USceneComponent

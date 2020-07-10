@@ -11,43 +11,42 @@
 
 #include "AirVRServerFunctionLibrary.h"
 #include "InputCoreTypes.h"
+#include "IHapticDevice.h"
+#include "GenericPlatform/IInputInterface.h"
 #include "GenericPlatform/GenericApplicationMessageHandler.h"
 
 class FAirVRCameraRigInput
 {
 private:
-    struct FKeyNames {
-        FName Main;
-        FName Emulated;
-
-        FKeyNames(FName InMain) : Main(InMain), Emulated(FName()) {}
-        FKeyNames(FName InMain, FName InEmulated) : Main(InMain), Emulated(InEmulated) {}
-    };
+    typedef TArray<FName> FKeyNames;
 
 public:
-    FAirVRCameraRigInput(int32 InControllerID) : 
-        ControllerID(InControllerID), 
-        LeftControllerPosition(FVector::ZeroVector), LeftControllerOrientation(FQuat::Identity),
-        RightControllerPosition(FVector::ZeroVector), RightControllerOrientation(FQuat::Identity) {}
+    FAirVRCameraRigInput(int32 InControllerID);
     ~FAirVRCameraRigInput() {}
 
 public:
-    bool IsControllerAvailable(const EControllerHand DeviceHand) const;
+    bool IsControllerAvailable(EControllerHand DeviceHand) const;
 
-    void GetControllerOrientationAndPosition(const EControllerHand DeviceHand, FRotator& OutOrientation, FVector& OutPosition);
+    void GetControllerOrientationAndPosition(EControllerHand DeviceHand, FRotator& OutOrientation, FVector& OutPosition);
+    void SetHapticFeedback(EControllerHand DeviceHand, const FHapticFeedbackValues& Values);
+    void SetForceFeedback(const FForceFeedbackValues& Values);
     void UpdateAndDispatch(FGenericApplicationMessageHandler& MessageHandler);
 
 private:
-    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& KeyForX, const FKeyNames& KeyForY);
-    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, 
-                               const FKeyNames& LeftKeyForX, const FKeyNames& LeftKeyForY, const FKeyNames& RightKeyForX, const FKeyNames& RightKeyForY);
-    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Key);
-    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& LeftKey, const FKeyNames& RightKey);
-    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Key);
-    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& LeftKey, const FKeyNames& RightKey);
-    void OnControllerAnalog(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 ControllerID, float Value);
-    void OnControllerButtonPressed(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 ControllerID, bool IsRepeat);
-    void OnControllerButtonReleased(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Key, int32 ControllerID, bool IsRepeat);
+    bool ParseDeviceType(EControllerHand DeviceHand, FAirVRInputDeviceType& Result) const;
+    bool ParseDeviceType(FForceFeedbackChannelType Channel, FAirVRInputDeviceType& Result) const;
+    int LastVibrationIndex(FAirVRInputDeviceType Device) const;
+    void SetVibration(FAirVRInputDeviceType Device, float Frequency, float Amplitude, bool bIsHapticEffect);
+
+    void DispatchControlAxis2D(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8 Control, const FKeyNames& KeysForX, const FKeyNames& KeysForY);
+    void DispatchControlAxis(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Keys);
+    void DispatchControlButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Keys);
+    void DispatchControlDirectionButton(FGenericApplicationMessageHandler& MessageHandler, FAirVRInputDeviceType Device, uint8_t Control, const FKeyNames& Keys, OCS_INPUT_DIRECTION Direction);
+    void OnControllerAnalog(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Keys, int32 ControllerID, float Value);
+    void OnControllerButtonPressed(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Keys, int32 ControllerID, bool IsRepeat);
+    void OnControllerButtonReleased(FGenericApplicationMessageHandler& MessageHandler, const FKeyNames& Keys, int32 ControllerID, bool IsRepeat);
+
+    void DispatchScreenTouches(FGenericApplicationMessageHandler& MessageHandler);
 
 private:
     int32 ControllerID;
@@ -55,4 +54,6 @@ private:
     FQuat LeftControllerOrientation;
     FVector RightControllerPosition;
     FQuat RightControllerOrientation;
+    bool bPlayingHapticEffect;
+    FHapticFeedbackValues LastVibrationValue[2];
 };
