@@ -27,9 +27,9 @@ namespace UnrealBuildTool.Rules
                 Path.Combine(ModuleDirectory, "../onAirVRServerInput/Private"),
                 Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Windows/D3D11RHI/Public"),
                 Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Windows/D3D11RHI/Private/Windows"),
-                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Renderer/Private")
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/Renderer/Private"),
+                Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Source/Runtime/AudioMixer/Private")
             });
-
 
             PrivateDependencyModuleNames.AddRange(new string[] {
                 "Core",

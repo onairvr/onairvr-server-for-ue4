@@ -1,15 +1,14 @@
 #include "AirVRMotionControllerComponent.h"
 #include "AirVRServerInputPrivate.h"
 
-#include "HeadMountedDisplay/Public/XRMotionControllerBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "XRMotionControllerBase.h"
 
 UAirVRMotionControllerComponent::UAirVRMotionControllerComponent() 
     : WidgetInteraction(nullptr)
 {
     PrimaryComponentTick.bCanEverTick = true;
     bRenderOnClient = false;
-    PointerCookieTextureFile = TEXT("NonAssets/Cookie.png");
-    PointerCookieDepthScaleMultiplier = 0.03f;
 }
 
 void UAirVRMotionControllerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) 
@@ -25,27 +24,23 @@ void UAirVRMotionControllerComponent::TickComponent(float DeltaTime, ELevelTick 
 
     UpdateChildWidgetInteraction(PlayerControllerID, InputDevice);
 
-    if (!WidgetInteraction) { return; }
-
-    if (!UAirVRServerFunctionLibrary::IsInputDeviceAvailable(PlayerControllerID, InputDevice) ||
-        !UAirVRServerFunctionLibrary::IsDeviceFeedbackEnabled(PlayerControllerID, InputDevice)) { return; }
+    if (!UAirVRServerFunctionLibrary::IsInputDeviceAvailable(PlayerControllerID, InputDevice)) { return; }
 
     UAirVRServerFunctionLibrary::UpdateRenderOnClient(PlayerControllerID, InputDevice, bRenderOnClient);
-    UAirVRServerFunctionLibrary::EnableRaycastHit(PlayerControllerID, InputDevice, bRenderOnClient);
 
-    if (bRenderOnClient) {
-        const FHitResult& Hit = WidgetInteraction->GetLastHitResult();
-        if (Hit.IsValidBlockingHit()) {
-            FTransform WorldToLocalTransform = GetAttachParent()->GetComponentTransform().Inverse();
-            UAirVRServerFunctionLibrary::UpdateRaycastHitResult(PlayerControllerID,
-                                                                InputDevice,
-                                                                WorldToLocalTransform.TransformPosition(WidgetInteraction->GetComponentLocation()),
-                                                                WorldToLocalTransform.TransformPosition(Hit.Location),
-                                                                WorldToLocalTransform.TransformVector(Hit.Normal));
-        }
-        else {
-            UAirVRServerFunctionLibrary::UpdateRaycastHitResult(PlayerControllerID, InputDevice, FVector::ZeroVector, FVector::ZeroVector, FVector::ZeroVector);
-        }
+    if (!WidgetInteraction || !bRenderOnClient) { return; }
+
+    const FHitResult& Hit = WidgetInteraction->GetLastHitResult();
+    if (Hit.IsValidBlockingHit()) {
+        FTransform WorldToLocalTransform = GetOwner()->GetRootComponent()->GetComponentTransform().Inverse();
+        UAirVRServerFunctionLibrary::UpdateRaycastHitResult(PlayerControllerID,
+                                                            InputDevice,
+                                                            WorldToLocalTransform.TransformPosition(WidgetInteraction->GetComponentLocation()),
+                                                            WorldToLocalTransform.TransformPosition(Hit.Location),
+                                                            WorldToLocalTransform.TransformVector(Hit.Normal));
+    }
+    else {
+        UAirVRServerFunctionLibrary::UpdateRaycastHitResult(PlayerControllerID, InputDevice, FVector::ZeroVector, FVector::ZeroVector, FVector::ZeroVector);
     }
 }
 
@@ -70,23 +65,6 @@ void UAirVRMotionControllerComponent::UpdateChildWidgetInteraction(int32 PlayerC
         if (Child->IsA(UWidgetInteractionComponent::StaticClass())) {
             NextWidget = Cast<UWidgetInteractionComponent>(Child);
             break;
-        }
-    }
-
-    if (WidgetInteraction == NextWidget) { return; }
-
-    if (!WidgetInteraction && NextWidget) {
-        if (!UAirVRServerFunctionLibrary::IsDeviceFeedbackEnabled(PlayerControllerID, InputDevice)) {
-            IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-            FString PointerCookieFile = FPaths::Combine(FPaths::ProjectContentDir(), PointerCookieTextureFile);
-            if (PlatformFile.FileExists(*PointerCookieFile)) {
-                UAirVRServerFunctionLibrary::EnableTrackedDeviceFeedback(PlayerControllerID, InputDevice, PointerCookieFile, PointerCookieDepthScaleMultiplier);
-            }
-        }
-    }
-    else if (WidgetInteraction && !NextWidget) {
-        if (UAirVRServerFunctionLibrary::IsDeviceFeedbackEnabled(PlayerControllerID, InputDevice)) {
-            UAirVRServerFunctionLibrary::DisableDeviceFeedback(PlayerControllerID, InputDevice);
         }
     }
 

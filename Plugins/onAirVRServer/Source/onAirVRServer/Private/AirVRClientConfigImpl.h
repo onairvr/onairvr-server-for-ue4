@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include "UObject/NoExportTypes.h"
-
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include "ocs_server.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 
 #include "AirVRClientConfig.h"
 #include "AirVRClientConfigImpl.generated.h"

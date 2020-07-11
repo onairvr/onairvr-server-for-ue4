@@ -97,8 +97,8 @@ void FAirVRTrackingModel::UpdateEyePose(const OCS_CLIENT_CONFIG& Config, const O
     IPD = Config.ipd;
 
     // exponential smoothing
-    HMDSpaceCenterEyePosition = FMath::Lerp(HMDSpaceCenterEyePosition, FVector(CenterEyePosition.x, CenterEyePosition.y, CenterEyePosition.z), 0.85f);
-    HMDSpaceCenterEyeOrientation = FQuat(CenterEyeOrientation.x, CenterEyeOrientation.y, CenterEyeOrientation.z, CenterEyeOrientation.w);
+    HMDSpaceCenterEyePosition = FMath::Lerp(HMDSpaceCenterEyePosition, VectorFrom(CenterEyePosition), 0.85f);
+    HMDSpaceCenterEyeOrientation = QuatFrom(CenterEyeOrientation);
 
     //HMDSpaceCenterEyePosition = FVector(CenterEyePosition.x, CenterEyePosition.y, CenterEyePosition.z);
 

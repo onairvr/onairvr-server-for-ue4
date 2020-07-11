@@ -15,10 +15,10 @@
 
 UAirVRServerSettings::UAirVRServerSettings()
     : LicenseFilePath(TEXT("onairvr.license")),
-      MaxClientCount(1),
       PortSTAP(9090),
-      ApplicationFrameRate(0.0f),
-      BroadcastAudioToAllPlayers(true),
+      AdaptiveFrameRate(false),
+      MinFrameRate(10.0f),
+      DisableAudio(false),
       PortAMP(0),
       LoopbackOnlyForSTAP(false),
       UserData(TEXT("")),
