@@ -11,9 +11,6 @@
 #include "AirVRServerPrivate.h"
 
 #include "Misc/Base64.h"
-#include "Windows/AllowWindowsPlatformTypes.h"
-#include "ocs_server.h"
-#include "Windows/HideWindowsPlatformTypes.h"
 
 static const char* KeyType              = "Type";
 static const char* TypeEvent            = "Event";
@@ -32,12 +29,14 @@ static const char* NameDeactivated      = "Deactivated";
 static const char* NameDestroyed        = "Destroyed";
 static const char* NameShowCopyright    = "ShowCopyright";
 
-static const char* FromMediaStream      = "MediaStream";
-static const char* NameInitialized      = "Initialized";
-static const char* NameStarted          = "Started";
-static const char* NameEncodeVideoFrame = "EncodeVideoFrame";
-static const char* NameStopped          = "Stopped";
-static const char* NameCleanedUp        = "CleanedUp";
+static const char* FromMediaStream          = "MediaStream";
+static const char* NameInitialized          = "Initialized";
+static const char* NameStarted              = "Started";
+static const char* NameEncodeVideoFrame     = "EncodeVideoFrame";
+static const char* NameStopped              = "Stopped";
+static const char* NameCleanedUp            = "CleanedUp";
+static const char* NameSetCameraProjection  = "SetCameraProjection";
+static const char* KeyCameraProjection      = "CameraProjection";
 
 static const char* FromInputStream                      = "InputStream";
 static const char* NameRemoteInputDeviceRegistered      = "RemoteInputDeviceRegistered";
@@ -78,30 +77,11 @@ void FAirVREventDispatcher::DispatchMessages()
                 else if (From.Equals(FromMediaStream)) {
                     DispatchMediaStreamMessage(SrcPlayerID, Parsed);
                 }
-                else if (From.Equals(FromInputStream)) {
-                    DispatchInputStreamMessage(SrcPlayerID, Parsed);
-                }
             }
         }
         ocs_RemoveFirstMessage();
     }
 }
-
-//uint32 FAirVREventDispatcher::Base64DataLength(FString& Data) const
-//{
-//    check(Data.Len() % 4 == 0);
-//    return 3 * Data.Len() / 4;
-//}
-//
-//uint32 FAirVREventDispatcher::DecodeBase64(FString& Encoded, uint8* Decoded, uint32 Length) const
-//{
-//    FTCHARToUTF8 EncodedUTF8(*Encoded);
-//    uint32 Pad = 0;
-//    if (FBase64::Decode(EncodedUTF8.Get(), Length, Decoded, Pad)) {
-//        return Length - Pad;
-//    }
-//    return 0;
-//}
 
 void FAirVREventDispatcher::DispatchSessionMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message)
 {
@@ -149,20 +129,18 @@ void FAirVREventDispatcher::DispatchMediaStreamMessage(int PlayerID, const TShar
     else if (Message->GetStringField(KeyName).Equals(NameCleanedUp)) {
         NotifyMediaStreamCleanedUp(PlayerID);
     }
-}
+    else if (Message->GetStringField(KeyName).Equals(NameSetCameraProjection)) {
+        check(Message->HasField(KeyCameraProjection));
 
-void FAirVREventDispatcher::DispatchInputStreamMessage(int PlayerID, const TSharedPtr<FJsonObject>& Message)
-{
-    if (Message->GetStringField(KeyName).Equals(NameRemoteInputDeviceRegistered)) {
-        check(Message->HasField(KeyDeviceName));
-        check(Message->HasField(KeyDeviceID));
+        auto CameraProjection = Message->GetArrayField(KeyCameraProjection);
+        check(CameraProjection.Num() == 4);
 
-        NotifyInputStreamRemoteInputDeviceRegistered(PlayerID, Message->GetStringField(KeyDeviceName), static_cast<uint8>(Message->GetIntegerField(KeyDeviceID)));
-    }
-    else if (Message->GetStringField(KeyName).Equals(NameRemoteInputDeviceUnregistered)) {
-        check(Message->HasField(KeyDeviceID));
+        float Projection[4];
+        for (int i = 0; i < 4; i++) {
+            Projection[i] = CameraProjection[i].Get()->AsNumber();
+        }
 
-        NotifyInputStreamRemoteInputDeviceUnregistered(PlayerID, static_cast<uint8>(Message->GetIntegerField(KeyDeviceID)));
+        NotifyMediaStreamSetCameraProjection(PlayerID, Projection);
     }
 }
 
@@ -250,16 +228,9 @@ void FAirVREventDispatcher::NotifyMediaStreamCleanedUp(int PlayerID) const
     }
 }
 
-void FAirVREventDispatcher::NotifyInputStreamRemoteInputDeviceRegistered(int PlayerID, const FString& DeviceName, uint8 DeviceID) const
+void FAirVREventDispatcher::NotifyMediaStreamSetCameraProjection(int PlayerID, const float* Projection) const 
 {
     for (auto Listener : Listeners) {
-        Listener->AirVREventInputStreamRemoteInputDeviceRegistered(PlayerID, DeviceName, DeviceID);
-    }
-}
-
-void FAirVREventDispatcher::NotifyInputStreamRemoteInputDeviceUnregistered(int PlayerID, uint8 DeviceID) const
-{
-    for (auto Listener : Listeners) {
-        Listener->AirVREventInputStreamRemoteInputDeviceUnregistered(PlayerID, DeviceID);
+        Listener->AirVREventMediaStreamSetCameraProjection(PlayerID, Projection);
     }
 }

@@ -10,6 +10,7 @@
 #include "AirVRPlayerCameraRigMap.h"
 #include "AirVRServerPrivate.h"
 
+#include "Engine/LocalPlayer.h"
 #include "AirVRCameraRig.h"
 
 int32 FAirVRPlayerCameraRigMap::GetPlayer(class FAirVRCameraRig* CameraRig) const
