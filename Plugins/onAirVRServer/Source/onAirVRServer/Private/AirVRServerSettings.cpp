@@ -19,6 +19,7 @@ UAirVRServerSettings::UAirVRServerSettings()
       AdaptiveFrameRate(false),
       MinFrameRate(10.0f),
       DisableAudio(false),
+      MaxClientCount(1),
       PortAMP(0),
       LoopbackOnlyForSTAP(false),
       UserData(TEXT("")),

@@ -1108,12 +1108,12 @@ void FAirVRServerHMD::StartupAirVRServer(FWorldContext& WorldContext)
     if (ret == OCS_RESULT_OK) {
         ocs_SetVideoEncoderParameters(120.0f, 0);
 
-        FAudioDevice* AudioDevice = GEngine->GetActiveAudioDevice();
-        ret = ocs_StartUp(1, 
+        FAudioDeviceHandle AudioDevice = GEngine->GetActiveAudioDevice();
+        ret = ocs_StartUp(Settings->MaxClientCount, 
                           Settings->PortSTAP,
                           Settings->PortAMP,
                           Settings->LoopbackOnlyForSTAP, 
-                          AudioDevice ? (int)AudioDevice->GetSampleRate() : 48000);
+                          AudioDevice.IsValid() ? (int)AudioDevice->GetSampleRate() : 48000);
 
         if (ret == OCS_RESULT_OK) {
             ENQUEUE_RENDER_COMMAND(ocs_StartUp_RenderThread)(
@@ -1164,8 +1164,8 @@ void FAirVRServerHMD::AddAudioSendToMasterSubmix(FWorldContext& WorldContext)
     }
 
     // workaround : UAudioMixerBlueprintLibrary seems to check if the audio device is of MixerDevice, but it fails to do.
-    FAudioDevice* AudioDevice = WorldContext.World()->GetAudioDevice();
-    if (AudioDevice->IsAudioMixerEnabled()) {
+    FAudioDeviceHandle AudioDevice = WorldContext.World()->GetAudioDevice();
+    if (AudioDevice.IsValid() && AudioDevice.GetAudioDevice()->IsAudioMixerEnabled()) {
         if (MasterAudioSendEffectSubmixPreset == nullptr) {
             MasterAudioSendEffectSubmixPreset = NewObject<USubmixEffectSubmixAirVRServerAudioSendPreset>(GetTransientPackage(), TEXT("Master onAirVR Server Audio Send Submix Effect"));
             MasterAudioSendEffectSubmixPreset->AddToRoot();
@@ -1183,8 +1183,8 @@ void FAirVRServerHMD::RemoveAudioSendFromMasterSubmix(FWorldContext& WorldContex
         return;
     }
 
-    FAudioDevice* AudioDevice = WorldContext.World()->GetAudioDevice();
-    if (AudioDevice->IsAudioMixerEnabled()) {
+    FAudioDeviceHandle AudioDevice = WorldContext.World()->GetAudioDevice();
+    if (AudioDevice.IsValid() && AudioDevice.GetAudioDevice()->IsAudioMixerEnabled()) {
         UAudioMixerBlueprintLibrary::RemoveMasterSubmixEffect(WorldContext.World(), MasterAudioSendEffectSubmixPreset);
     }
 }

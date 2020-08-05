@@ -34,6 +34,9 @@ public:
     UPROPERTY(GlobalConfig, EditAnywhere, Category = "Audio", meta = (DisplayName = "Disable Audio", ToolTip = "If true, do not send audio to clients (You can still send audio frame manually)"))
     bool DisableAudio;
 
+    UPROPERTY(GlobalConfig)
+    int MaxClientCount;
+
 public:
     uint16 PortAMP;
     bool LoopbackOnlyForSTAP;
