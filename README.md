@@ -12,7 +12,7 @@ onAirVR consists of two applications - mobile VR client app & content app on PC.
 
 Please ensure you have right hardwares :
 
-* **Oculus Mobile** device
+* **Oculus Quest**
 * **Windows** desktop powered by **NVIDIA graphics**
 
 This plugin is for PC content development, and the plugins for mobile VR platforms we supports are belows :
